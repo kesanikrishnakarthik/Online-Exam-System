@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Online Exam</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 20px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        header nav {
+            display: flex;
+            gap: 25px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        header a:hover {
+            color: #93c5fd;
+        }
+
+        main {
+            padding: 40px 7%;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .welcome {
+            background: linear-gradient(120deg, #2563eb, #4338ca);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+        }
+
+        .welcome h1 {
+            font-size: 36px;
+            margin-top: 15px;
+        }
+
+        .welcome p {
+            font-size: 18px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px #00000010;
+        }
+
+        .card h2 {
+            color: #1d4ed8;
+        }
+
+        .card p {
+            line-height: 1.6;
+            min-height: 45px;
+        }
+
+        .card a {
+            display: inline-block;
+            margin-top: 12px;
+            background: #2563eb;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .card a:hover {
+            background: #1d4ed8;
+        }
+
+        footer {
+            margin-top: 30px;
+            padding: 22px;
+            text-align: center;
+            background: #172554;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 20px;
+            }
+
+            main {
+                padding: 25px 18px;
+            }
+
+            .welcome {
+                padding: 25px;
+            }
+
+            .welcome h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>Online Exam</h2>
+
+    <nav>
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/exams">Exams</a>
+    </nav>
+</header>
+
+<main>
+
+    <section class="welcome">
+        <h1>Welcome to Your Dashboard!</h1>
+        <p>Manage your exams and track your progress.</p>
+    </section>
+
+    <section class="cards">
+
+        <div class="card">
+            <h2>Available Exams</h2>
+            <p>View available examinations and check their duration and total marks.</p>
+            <a href="/exams">View Exams</a>
+        </div>
+
+        <div class="card">
+            <h2>My Results</h2>
+            <p>View your examination scores and track your performance.</p>
+            <a href="/results">View Results</a>
+        </div>
+
+        <div class="card">
+            <h2>My Profile</h2>
+            <p>View your student account details.</p>
+            <a href="/profile">View Profile</a>
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    Online Examination System | DevOps Project 2026
+</footer>
+
+</body>
+</html>
+

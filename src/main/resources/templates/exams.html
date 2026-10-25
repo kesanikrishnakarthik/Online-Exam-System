@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Exams</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 22px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .intro {
+            margin-bottom: 30px;
+        }
+
+        .intro h1 {
+            color: #1d4ed8;
+        }
+
+        .exam-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+
+        .exam-card {
+            background: white;
+            padding: 26px;
+            border-radius: 14px;
+            box-shadow: 0 5px 20px #0000000d;
+        }
+
+        .exam-card h2 {
+            color: #1d4ed8;
+        }
+
+        .exam-info {
+            line-height: 1.8;
+        }
+
+        .start-button {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 20px;
+            border-radius: 7px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+        }
+
+        .empty-message {
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h2>Online Exam</h2>
+    <a href="/dashboard">Dashboard</a>
+</header>
+
+<main>
+    <section class="intro">
+        <h1>Available Exams</h1>
+        <p>Choose an exam from the list below.</p>
+    </section>
+
+    <section class="exam-list" th:if="${not #lists.isEmpty(exams)}">
+        <article class="exam-card" th:each="exam : ${exams}">
+            <h2 th:text="${exam.title}">Exam Title</h2>
+
+            <div class="exam-info">
+                <p>
+                    <strong>Subject:</strong>
+                    <span th:text="${exam.subject}">Subject</span>
+                </p>
+
+                <p>
+                    <strong>Duration:</strong>
+                    <span th:text="${exam.durationMinutes}">30</span> minutes
+                </p>
+
+                <p>
+                    <strong>Total Marks:</strong>
+                    <span th:text="${exam.totalMarks}">20</span>
+                </p>
+            </div>
+
+            <a class="start-button"
+            th:href="@{/exam/{examId}(examId=${exam.id})}">
+            Start Exam
+            </a>
+
+        </article>
+    </section>
+
+    <section class="empty-message" th:if="${#lists.isEmpty(exams)}">
+        <h3>No exams available yet.</h3>
+        <p>Exams will appear here when they are added to the system.</p>
+    </section>
+</main>
+</body>
+</html>
+

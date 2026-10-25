@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Exam - Online Examination System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 20px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .exam-info, .question-card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #00000010;
+        }
+
+        h1, h2 {
+            color: #2563eb;
+        }
+
+        .option {
+            display: block;
+            padding: 12px;
+            margin: 10px 0;
+            background: #f8fafc;
+            border: 1px solid #dbeafe;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background: #eff6ff;
+        }
+
+        .option input {
+            margin-right: 10px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 7px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .empty {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>Online Exam</h2>
+    <a href="/dashboard">Dashboard</a>
+</header>
+
+<main>
+    <section class="exam-info">
+        <h1 th:text="${exam.title}">Exam Title</h1>
+        <p>
+            <strong>Subject:</strong>
+            <span th:text="${exam.subject}">Subject</span>
+        </p>
+        <p>
+            <strong>Duration:</strong>
+            <span th:text="${exam.durationMinutes}">30</span> minutes
+        </p>
+        <p>
+            <strong>Total Marks:</strong>
+            <span th:text="${exam.totalMarks}">20</span>
+        </p>
+    </section>
+
+    <form th:if="${not #lists.isEmpty(questions)}"
+          th:action="@{/exam/{id}/submit(id=${exam.id})}"
+          method="post">
+
+        <section class="question-card"
+                 th:each="question, stat : ${questions}">
+
+            <h3>
+                <span th:text="${stat.count}">1</span>.
+                <span th:text="${question.questionText}">Question</span>
+            </h3>
+
+            <p>
+                <strong>Marks:</strong>
+                <span th:text="${question.marks}">1</span>
+            </p>
+
+            <label class="option">
+                <input type="radio"
+                       th:name="${'question_' + question.id}"
+                       value="A">
+                <span th:text="${question.optionA}">Option A</span>
+            </label>
+
+            <label class="option">
+                <input type="radio"
+                       th:name="${'question_' + question.id}"
+                       value="B">
+                <span th:text="${question.optionB}">Option B</span>
+            </label>
+
+            <label class="option">
+                <input type="radio"
+                       th:name="${'question_' + question.id}"
+                       value="C">
+                <span th:text="${question.optionC}">Option C</span>
+            </label>
+
+            <label class="option">
+                <input type="radio"
+                       th:name="${'question_' + question.id}"
+                       value="D">
+                <span th:text="${question.optionD}">Option D</span>
+            </label>
+        </section>
+
+        <button type="submit">Submit Exam</button>
+    </form>
+
+    <section class="empty"
+             th:if="${#lists.isEmpty(questions)}">
+        <h2>No Questions Available</h2>
+        <p>This exam does not have any questions yet.</p>
+        <a href="/exams">Back to Available Exams</a>
+    </section>
+</main>
+
+</body>
+</html>
+

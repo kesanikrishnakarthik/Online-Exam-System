@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Result - Online Examination System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 20px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h2 {
+            margin: 0;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 750px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px #00000010;
+        }
+
+        h1 {
+            color: #2563eb;
+        }
+
+        .score {
+            font-size: 42px;
+            font-weight: bold;
+            color: #16a34a;
+            margin: 25px 0;
+        }
+
+        .button {
+            display: inline-block;
+            margin: 10px 5px;
+            padding: 13px 20px;
+            background: #2563eb;
+            color: white;
+            border-radius: 7px;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>Online Exam</h2>
+    <a href="/dashboard">Dashboard</a>
+</header>
+
+<main>
+    <section class="result-card">
+        <h1>Exam Submitted Successfully!</h1>
+
+        <h2 th:text="${exam.title}">Exam Title</h2>
+
+        <p>Your examination score is:</p>
+
+        <div class="score">
+            <span th:text="${score}">0</span>
+            /
+            <span th:text="${totalMarks}">0</span>
+        </div>
+
+        <p>
+            <strong>Subject:</strong>
+            <span th:text="${exam.subject}">Subject</span>
+        </p>
+
+        <a href="/exams" class="button">Available Exams</a>
+        <a href="/dashboard" class="button">Back to Dashboard</a>
+    </section>
+</main>
+
+</body>
+</html>
+
