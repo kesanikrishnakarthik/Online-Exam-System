@@ -37,5 +37,15 @@ pipeline {
                 bat 'docker build -t online-exam:1.0 .'
             }
         }
+
+        stage('Deploy Application') {
+            steps {
+                bat '''
+                    docker rm -f online-exam-container 2>NUL
+                    docker run -d --name online-exam-container -p 8081:8081 online-exam:1.0
+                '''
+            }
+        }
     }
 }
+
