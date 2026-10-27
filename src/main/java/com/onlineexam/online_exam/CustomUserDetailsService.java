@@ -33,7 +33,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Fallback: check if identifier matches collegeCode:rollNumber format (e.g. "AIT:21B91A0501")
         if (userOpt.isEmpty() && trimmed.contains(":")) {
             String[] parts = trimmed.split(":", 2);
-            userOpt = userAccountRepository.findByCollegeCodeAndRollNumberOrFacultyId(
+            userOpt = userAccountRepository.findByCollegeCodeAndInstitutionalId(
                     parts[0].trim().toUpperCase(), parts[1].trim());
         }
 
@@ -60,4 +60,3 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
     }
 }
-

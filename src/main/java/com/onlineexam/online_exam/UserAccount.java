@@ -22,7 +22,7 @@ public class UserAccount {
 
     private String fullName;
     private String email;
-    private String rollNumberOrFacultyId;
+    private String institutionalId; // Student Roll Number or Faculty Employee ID
     private String role; // ROLE_STUDENT, ROLE_FACULTY, ROLE_ADMIN, ROLE_PLATFORM_ADMIN
     private String collegeCode;
     private String collegeName;
@@ -38,19 +38,17 @@ public class UserAccount {
     }
 
     public UserAccount(String username, String password, String fullName, String email,
-                       String rollNumberOrFacultyId, String role, String collegeCode,
+                       String institutionalId, String role, String collegeCode,
                        String collegeName, String department) {
         this.username = username;
         this.password = password;
         this.fullName = fullName;
         this.email = email;
-        this.rollNumberOrFacultyId = rollNumberOrFacultyId;
+        this.institutionalId = institutionalId;
         this.role = role;
         this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "";
         this.collegeName = collegeName;
         this.department = department;
-        this.status = "ACTIVE";
-        this.createdAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -93,12 +91,20 @@ public class UserAccount {
         this.email = email;
     }
 
-    public String getRollNumberOrFacultyId() {
-        return rollNumberOrFacultyId;
+    public String getInstitutionalId() {
+        return institutionalId;
     }
 
-    public void setRollNumberOrFacultyId(String rollNumberOrFacultyId) {
-        this.rollNumberOrFacultyId = rollNumberOrFacultyId;
+    public void setInstitutionalId(String institutionalId) {
+        this.institutionalId = institutionalId;
+    }
+
+    public String getRollNumberOrFacultyId() {
+        return institutionalId;
+    }
+
+    public void setRollNumberOrFacultyId(String id) {
+        this.institutionalId = id;
     }
 
     public String getRole() {
@@ -181,4 +187,3 @@ public class UserAccount {
         this.createdAt = createdAt;
     }
 }
-

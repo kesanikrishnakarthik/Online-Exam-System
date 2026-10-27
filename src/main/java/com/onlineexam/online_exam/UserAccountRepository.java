@@ -8,7 +8,7 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
 
     Optional<UserAccount> findByUsername(String username);
 
-    Optional<UserAccount> findByCollegeCodeAndRollNumberOrFacultyId(String collegeCode, String rollNumberOrFacultyId);
+    Optional<UserAccount> findByCollegeCodeAndInstitutionalId(String collegeCode, String institutionalId);
 
     List<UserAccount> findByCollegeCodeAndRole(String collegeCode, String role);
 
@@ -18,6 +18,5 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
 
     boolean existsByUsername(String username);
 
-    boolean existsByCollegeCodeAndRollNumberOrFacultyId(String collegeCode, String rollNumberOrFacultyId);
+    boolean existsByCollegeCodeAndInstitutionalId(String collegeCode, String institutionalId);
 }
-
