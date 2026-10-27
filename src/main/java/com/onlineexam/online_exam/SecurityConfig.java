@@ -31,12 +31,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/", "/login", "/register-college", "/register-student", "/register-faculty",
-                    "/css/**", "/js/**", "/images/**", "/h2-console/**", "/api/firebase-config"
+                    "/forgot-password", "/css/**", "/js/**", "/images/**", "/h2-console/**", "/api/firebase-config"
                 ).permitAll()
                 .requestMatchers("/platform/**").hasRole("PLATFORM_ADMIN")
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "COLLEGE_ADMIN", "PLATFORM_ADMIN")
                 .requestMatchers("/faculty/**").hasAnyRole("FACULTY", "PLATFORM_ADMIN")
-                .requestMatchers("/student/**", "/dashboard", "/exams", "/exam/**", "/results", "/profile").hasAnyRole("STUDENT", "ADMIN", "PLATFORM_ADMIN")
+                .requestMatchers("/student/**", "/dashboard", "/exams", "/exam/**", "/results", "/profile", "/change-password")
+                    .hasAnyRole("STUDENT", "FACULTY", "ADMIN", "COLLEGE_ADMIN", "PLATFORM_ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

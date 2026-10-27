@@ -22,6 +22,7 @@ public class ExamResult {
     private String college = "Apex Institute of Technology";
     private int score;
     private int totalMarks;
+    private String passFailStatus = "PASS"; // PASS, FAIL
     private int attemptNumber = 1;
     private LocalDateTime submissionTime = LocalDateTime.now();
     private int violationCount = 0;
@@ -42,6 +43,7 @@ public class ExamResult {
         this.attemptNumber = 1;
         this.submissionReason = "NORMAL";
         this.collegeCode = "AIT";
+        this.passFailStatus = (totalMarks > 0 && (score * 100.0 / totalMarks) >= 40.0) ? "PASS" : "FAIL";
     }
 
     public ExamResult(Long examId, String examTitle, String subject,
@@ -60,6 +62,7 @@ public class ExamResult {
         this.violationCount = violationCount;
         this.submissionReason = submissionReason;
         this.submissionTime = LocalDateTime.now();
+        this.passFailStatus = (totalMarks > 0 && (score * 100.0 / totalMarks) >= 40.0) ? "PASS" : "FAIL";
     }
 
     public ExamResult(Long examId, String examTitle, String subject,
@@ -79,6 +82,7 @@ public class ExamResult {
         this.violationCount = violationCount;
         this.submissionReason = submissionReason;
         this.submissionTime = LocalDateTime.now();
+        this.passFailStatus = (totalMarks > 0 && (score * 100.0 / totalMarks) >= 40.0) ? "PASS" : "FAIL";
     }
 
     public Long getId() {
@@ -159,6 +163,14 @@ public class ExamResult {
 
     public void setTotalMarks(int totalMarks) {
         this.totalMarks = totalMarks;
+    }
+
+    public String getPassFailStatus() {
+        return passFailStatus != null ? passFailStatus : ((totalMarks > 0 && (score * 100.0 / totalMarks) >= 40.0) ? "PASS" : "FAIL");
+    }
+
+    public void setPassFailStatus(String passFailStatus) {
+        this.passFailStatus = passFailStatus;
     }
 
     public int getAttemptNumber() {

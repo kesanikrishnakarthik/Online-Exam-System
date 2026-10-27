@@ -127,7 +127,7 @@ public class DataLoader {
                 examRepository.save(nieExam1);
             }
 
-            // 4. Seed Questions
+            // 4. Seed Questions (Single-Choice, Multiple-Select, Fill-in-the-Blanks)
             if (questionRepository.count() == 0) {
                 Exam javaExam = examRepository.findAll()
                         .stream()
@@ -136,6 +136,7 @@ public class DataLoader {
                         .orElse(null);
 
                 if (javaExam != null) {
+                    // Type 1: Single Choice MCQ
                     questionRepository.save(new Question(
                             javaExam.getId(), "Which keyword is used to inherit a class in Java?",
                             "implements", "extends", "inherits", "super", "B", 4));
@@ -155,6 +156,42 @@ public class DataLoader {
                     questionRepository.save(new Question(
                             javaExam.getId(), "Which collection does not allow duplicate elements?",
                             "List", "ArrayList", "Set", "Queue", "C", 4));
+
+                    // Type 2: Multiple-Select (All-or-Nothing)
+                    questionRepository.save(new Question(
+                            javaExam.getId(),
+                            "Which of the following are valid access modifiers in Java? (Select all that apply)",
+                            "MULTIPLE_SELECT",
+                            "public", "private", "protected", "friend",
+                            "A,B,C", "ALL_OR_NOTHING", false, 4, 0));
+
+                    // Type 2: Multiple-Select (Partial Credit)
+                    questionRepository.save(new Question(
+                            javaExam.getId(),
+                            "Which of the following classes implement the java.util.List interface? (Select all that apply)",
+                            "MULTIPLE_SELECT",
+                            "ArrayList", "LinkedList", "Vector", "HashSet",
+                            "A,B,C", "PARTIAL_CREDIT", false, 4, 0));
+
+                    // Type 3: Fill-in-the-Blanks (Accepts: metaspace, method area, permgen)
+                    questionRepository.save(new Question(
+                            javaExam.getId(),
+                            "What is the name of the memory area in the JVM where class metadata and bytecode are loaded?",
+                            "FILL_BLANKS",
+                            "", "", "", "",
+                            "metaspace, method area, permgen", "ALL_OR_NOTHING", false, 4, 0));
+
+                    // Type 3: Fill-in-the-Blanks (final)
+                    questionRepository.save(new Question(
+                            javaExam.getId(),
+                            "Which Java keyword is used to prevent a class from being inherited or a method from being overridden?",
+                            "FILL_BLANKS",
+                            "", "", "", "",
+                            "final", "ALL_OR_NOTHING", false, 4, 0));
+
+                    javaExam.setTotalMarks(36);
+                    javaExam.setPassMarks(15);
+                    examRepository.save(javaExam);
                 }
 
                 Exam pythonExam = examRepository.findAll()
@@ -171,6 +208,24 @@ public class DataLoader {
                     questionRepository.save(new Question(
                             pythonExam.getId(), "What is the output of type([]) in Python?",
                             "<class 'tuple'>", "<class 'list'>", "<class 'dict'>", "<class 'array'>", "B", 5));
+
+                    questionRepository.save(new Question(
+                            pythonExam.getId(),
+                            "Which of the following are built-in collection types in Python? (Select all that apply)",
+                            "MULTIPLE_SELECT",
+                            "list", "set", "tuple", "arraylist",
+                            "A,B,C", "ALL_OR_NOTHING", false, 5, 0));
+
+                    questionRepository.save(new Question(
+                            pythonExam.getId(),
+                            "Which keyword is used to define an anonymous or inline function in Python?",
+                            "FILL_BLANKS",
+                            "", "", "", "",
+                            "lambda", "ALL_OR_NOTHING", false, 5, 0));
+
+                    pythonExam.setTotalMarks(20);
+                    pythonExam.setPassMarks(8);
+                    examRepository.save(pythonExam);
                 }
             }
         };

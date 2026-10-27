@@ -117,18 +117,17 @@ The project includes an enterprise-grade CI/CD automation pipeline defined in [J
 
 ```mermaid
 flowchart LR
-    S1["1. Checkout Source\n(Git scm)"] --> S2["2. Compile & Unit Test\n(mvnw test - 9/9 PASS)"]
+    S1["1. Checkout Source\n(Git scm)"] --> S2["2. Compile & Unit Test\n(mvnw test - 15/15 PASS)"]
     S2 --> S3["3. Package Artifact\n(mvnw package JAR)"]
-    S3 --> S4["4. Docker Build\n(eclipse-temurin:21)"]
     S4 --> S5["5. Container Deploy\n(Port 8081 Healthcheck)"]
-```
+    S3 --> S4["4. Docker Build\n(eclipse-temurin:21)"]
 
 ### Local Build & Test Commands:
 ```powershell
-# From workspace root:
-.\mvnw.cmd test       # Runs all 9 domain, multi-tenant & security tests
+# From online-exam directory:
+.\mvnw.cmd test       # Runs all 15 domain, grading, multi-tenant & security unit tests
 .\mvnw.cmd package    # Compiles and builds production executable JAR
-java -jar online-exam/target/online-exam-0.0.1-SNAPSHOT.jar
+java -jar target/online-exam-0.0.1-SNAPSHOT.jar
 ```
 
 ---

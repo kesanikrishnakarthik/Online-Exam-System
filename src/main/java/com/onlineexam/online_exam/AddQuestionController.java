@@ -1,5 +1,7 @@
 package com.onlineexam.online_exam;
 
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,10 +29,13 @@ public class AddQuestionController {
             Model model) {
 
         Exam exam = examRepository.findById(examId)
-                .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Exam not found: " + examId));
+
+        List<Question> questions = questionRepository.findByExamId(examId);
 
         model.addAttribute("exam", exam);
-        model.addAttribute("questions", questionRepository.findByExamId(examId));
+        model.addAttribute("questions", questions);
+        model.addAttribute("totalQuestions", questions.size());
 
         return "add-question";
     }
@@ -38,45 +43,80 @@ public class AddQuestionController {
     @PostMapping("/faculty/exam/{examId}/add-question")
     public String addQuestion(
             @PathVariable Long examId,
+            @RequestParam(defaultValue = "SINGLE_CHOICE") String questionType,
             @RequestParam String questionText,
-            @RequestParam String optionA,
-            @RequestParam String optionB,
-            @RequestParam String optionC,
-            @RequestParam String optionD,
-            @RequestParam String correctAnswer,
-            @RequestParam int marks,
+            @RequestParam(required = false, defaultValue = "") String optionA,
+            @RequestParam(required = false, defaultValue = "") String optionB,
+            @RequestParam(required = false, defaultValue = "") String optionC,
+            @RequestParam(required = false, defaultValue = "") String optionD,
+            @RequestParam(required = false, defaultValue = "") String correctAnswerSingle,
+            @RequestParam(required = false) List<String> correctOptionsMulti,
+            @RequestParam(required = false, defaultValue = "") String acceptedAnswersFill,
+            @RequestParam(required = false, defaultValue = "ALL_OR_NOTHING") String markingScheme,
+            @RequestParam(required = false, defaultValue = "false") boolean caseSensitive,
+            @RequestParam(defaultValue = "4") int marks,
+            @RequestParam(defaultValue = "0") int negativeMarks,
             RedirectAttributes redirectAttributes) {
 
         Exam exam = examRepository.findById(examId)
-                .orElseThrow(() -> new IllegalArgumentException("Exam not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Exam not found: " + examId));
 
-        if (questionText.isBlank()
-                || optionA.isBlank()
-                || optionB.isBlank()
-                || optionC.isBlank()
-                || optionD.isBlank()
-                || !(correctAnswer.equals("A")
-                    || correctAnswer.equals("B")
-                    || correctAnswer.equals("C")
-                    || correctAnswer.equals("D"))
-                || marks < 1) {
-
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage",
-                    "Enter valid question details and marks.");
-
+        if (questionText.isBlank() || marks < 1) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Question text and positive marks are required.");
             return "redirect:/faculty/exam/" + examId + "/add-question";
+        }
+
+        String computedCorrectAnswer = "";
+
+        if ("SINGLE_CHOICE".equalsIgnoreCase(questionType)) {
+            if (optionA.isBlank() || optionB.isBlank() || optionC.isBlank() || optionD.isBlank()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "All 4 options must be provided for single-choice questions.");
+                return "redirect:/faculty/exam/" + examId + "/add-question";
+            }
+            if (correctAnswerSingle.isBlank() || !List.of("A", "B", "C", "D").contains(correctAnswerSingle.trim().toUpperCase())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Please select one correct answer (A, B, C, or D).");
+                return "redirect:/faculty/exam/" + examId + "/add-question";
+            }
+            computedCorrectAnswer = correctAnswerSingle.trim().toUpperCase();
+
+        } else if ("MULTIPLE_SELECT".equalsIgnoreCase(questionType)) {
+            if (optionA.isBlank() || optionB.isBlank() || optionC.isBlank() || optionD.isBlank()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "All 4 options must be provided for multiple-select questions.");
+                return "redirect:/faculty/exam/" + examId + "/add-question";
+            }
+            if (correctOptionsMulti == null || correctOptionsMulti.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Please select at least two correct options for multiple-select.");
+                return "redirect:/faculty/exam/" + examId + "/add-question";
+            }
+            // Sort and join: e.g. "A,C"
+            computedCorrectAnswer = String.join(",", correctOptionsMulti);
+
+        } else if ("FILL_BLANKS".equalsIgnoreCase(questionType)) {
+            if (acceptedAnswersFill.isBlank()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Please provide at least one accepted answer for fill-in-the-blank.");
+                return "redirect:/faculty/exam/" + examId + "/add-question";
+            }
+            // Normalize comma-separated accepted answers
+            computedCorrectAnswer = String.join(",", Arrays.stream(acceptedAnswersFill.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .toList());
         }
 
         Question question = new Question(
                 examId,
-                questionText,
-                optionA,
-                optionB,
-                optionC,
-                optionD,
-                correctAnswer,
-                marks);
+                questionText.trim(),
+                questionType.toUpperCase(),
+                optionA.trim(),
+                optionB.trim(),
+                optionC.trim(),
+                optionD.trim(),
+                computedCorrectAnswer,
+                markingScheme,
+                caseSensitive,
+                marks,
+                negativeMarks
+        );
 
         questionRepository.save(question);
 
@@ -87,9 +127,31 @@ public class AddQuestionController {
         exam.setTotalMarks(updatedTotalMarks);
         examRepository.save(exam);
 
-        redirectAttributes.addFlashAttribute(
-                "successMessage",
-                "Question added successfully!");
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Question of type '" + questionType + "' added successfully!");
+        return "redirect:/faculty/exam/" + examId + "/add-question";
+    }
+
+    @PostMapping("/faculty/exam/{examId}/question/{questionId}/delete")
+    public String deleteQuestion(
+            @PathVariable Long examId,
+            @PathVariable Long questionId,
+            RedirectAttributes redirectAttributes) {
+
+        Exam exam = examRepository.findById(examId).orElse(null);
+        Question question = questionRepository.findById(questionId).orElse(null);
+
+        if (exam != null && question != null && examId.equals(question.getExamId())) {
+            questionRepository.delete(question);
+
+            int updatedTotalMarks = questionRepository.findByExamId(examId).stream()
+                    .mapToInt(Question::getMarks)
+                    .sum();
+            exam.setTotalMarks(updatedTotalMarks);
+            examRepository.save(exam);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Question deleted successfully.");
+        }
 
         return "redirect:/faculty/exam/" + examId + "/add-question";
     }

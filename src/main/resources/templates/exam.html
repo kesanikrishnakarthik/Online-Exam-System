@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Examination in Progress - College Online Exam System</title>
-    <!-- Firebase SDK Scripts (CDN compatible for offline/online fallbacks) -->
+    <title>Active Examination - CollegeConnect Integrity Portal</title>
+    <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -21,78 +21,92 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #f8fafc;
             color: #0f172a;
-            user-select: none; /* Anti-cheating copy prevention */
+            user-select: none;
             -webkit-user-select: none;
         }
 
-        header {
-            background: #1e3a8a;
+        /* Top Bar */
+        .exam-header {
+            background: #0f172a;
             color: white;
-            padding: 16px 5%;
+            padding: 14px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        header .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .exam-title-group h2 {
+            font-size: 18px;
+            font-weight: 800;
         }
 
-        header h2 {
-            font-size: 20px;
-            font-weight: 700;
+        .exam-title-group p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 2px;
         }
 
-        .timer-container {
+        .timer-box {
+            background: #1e293b;
+            padding: 8px 18px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 8px 18px;
-            border-radius: 30px;
+            border: 1px solid #334155;
+        }
+
+        .timer-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #94a3b8;
             font-weight: 700;
-            font-size: 16px;
-            letter-spacing: 0.5px;
+        }
+
+        .timer-countdown {
+            font-size: 22px;
+            font-weight: 800;
+            color: #38bdf8;
+            font-family: monospace;
+            letter-spacing: 1px;
         }
 
         .timer-warning {
-            background: #ef4444 !important;
-            animation: pulse 1s infinite alternate;
+            color: #ef4444 !important;
+            animation: pulse 1s infinite;
         }
 
         @keyframes pulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.04); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        main {
-            max-width: 1200px;
-            margin: 25px auto;
-            padding: 0 20px 40px;
+        /* Layout */
+        .exam-container {
             display: grid;
             grid-template-columns: 1fr 320px;
             gap: 25px;
+            max-width: 1300px;
+            margin: 25px auto;
+            padding: 0 20px 60px;
         }
 
-        @media (max-width: 850px) {
-            main {
-                grid-template-columns: 1fr;
-            }
+        /* Main Question Area */
+        .exam-main {
+            min-width: 0;
         }
 
         .exam-info-bar {
             background: white;
-            padding: 20px 24px;
+            padding: 18px 24px;
             border-radius: 12px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border-left: 5px solid #2563eb;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -101,13 +115,14 @@
         }
 
         .exam-info-bar h1 {
-            font-size: 22px;
+            font-size: 20px;
             color: #1e3a8a;
+            font-weight: 800;
         }
 
         .badge {
             display: inline-block;
-            padding: 5px 12px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
@@ -129,22 +144,35 @@
             padding: 24px;
             margin-bottom: 20px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             border: 1px solid #e2e8f0;
         }
 
         .question-card h3 {
-            font-size: 17px;
+            font-size: 16px;
             color: #1e293b;
             margin-bottom: 14px;
             line-height: 1.5;
         }
 
+        .q-type-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            display: inline-block;
+        }
+
+        .type-single { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+        .type-multi { background: #faf5ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+        .type-fill { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+
         .option-label {
             display: flex;
             align-items: center;
-            padding: 14px 16px;
-            margin: 10px 0;
+            padding: 13px 16px;
+            margin: 8px 0;
             background: #f8fafc;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
@@ -157,22 +185,37 @@
             border-color: #93c5fd;
         }
 
-        .option-label input[type="radio"] {
+        .option-label input[type="radio"],
+        .option-label input[type="checkbox"] {
             margin-right: 14px;
-            width: 18px;
-            height: 18px;
-            accent-color: #2563eb;
+            transform: scale(1.2);
+            cursor: pointer;
         }
 
-        .option-label input[type="radio"]:checked + span {
-            font-weight: 600;
-            color: #1d4ed8;
+        .fill-blank-box {
+            margin-top: 12px;
         }
 
-        /* Sidebar Question Palette */
+        .fill-blank-input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #ffffff;
+            transition: border-color 0.2s;
+        }
+
+        .fill-blank-input:focus {
+            outline: none;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        /* Sidebar */
         .sidebar {
             position: sticky;
-            top: 90px;
+            top: 95px;
             height: fit-content;
         }
 
@@ -180,16 +223,16 @@
             background: white;
             padding: 22px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
         }
 
         .palette-card h3 {
-            font-size: 16px;
-            margin-bottom: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 14px;
             color: #1e3a8a;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 10px;
         }
 
         .palette-grid {
@@ -200,23 +243,20 @@
         }
 
         .palette-btn {
-            width: 100%;
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             background: #f1f5f9;
-            color: #475569;
-            font-weight: 700;
-            border-radius: 8px;
             border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 0;
+            font-weight: 700;
+            font-size: 13px;
             cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
+            text-align: center;
+            transition: all 0.2s;
+            color: #334155;
         }
 
         .palette-btn.answered {
-            background: #22c55e;
+            background: #16a34a;
             color: white;
             border-color: #16a34a;
         }
@@ -224,7 +264,7 @@
         .stat-row {
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
+            font-size: 13px;
             margin-bottom: 8px;
             color: #64748b;
         }
@@ -236,12 +276,12 @@
 
         .submit-btn {
             width: 100%;
-            padding: 14px;
+            padding: 13px;
             background: #2563eb;
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
             margin-top: 15px;
@@ -269,7 +309,7 @@
 
         .modal-box {
             background: white;
-            padding: 32px;
+            padding: 30px;
             border-radius: 16px;
             max-width: 480px;
             width: 90%;
@@ -281,13 +321,14 @@
         .modal-box h2 {
             color: #b91c1c;
             margin-bottom: 12px;
+            font-size: 20px;
         }
 
         .modal-box p {
             color: #475569;
             line-height: 1.6;
             margin-bottom: 24px;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .modal-btn {
@@ -296,7 +337,7 @@
             padding: 12px 28px;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
         }
@@ -305,28 +346,30 @@
 
 <body>
 
-<header>
-    <div class="brand">
-        <h2>College Online Exam System</h2>
+<!-- Header with Live Countdown Timer -->
+<div class="exam-header">
+    <div class="exam-title-group">
+        <h2 th:text="${exam.title}">Examination Title</h2>
+        <p><span th:text="${collegeName}">Institution</span> • Subject: <span th:text="${exam.subject}">Subject</span></p>
     </div>
 
-    <div class="timer-container" id="timerBox">
-        <span>Time Left:</span>
-        <span id="countdown">--:--</span>
+    <div class="timer-box">
+        <span class="timer-label">Time Remaining</span>
+        <span class="timer-countdown" id="timerDisplay">--:--</span>
     </div>
-</header>
+</div>
 
-<main>
-    <div class="content-column">
+<div class="exam-container">
+    <!-- Left Main Examination Questions -->
+    <div class="exam-main">
         <div class="exam-info-bar">
             <div>
-                <h1 th:text="${exam.title}">Java Programming Exam</h1>
-                <p style="color: #64748b; font-size: 14px; margin-top: 4px;">
-                    Subject: <strong th:text="${exam.subject}">Java</strong> |
-                    Total Marks: <strong th:text="${totalMarks}">20</strong>
+                <h1>Candidate Assessment Sheet</h1>
+                <p style="color: #64748b; font-size: 13px; margin-top: 4px;">
+                    Total Marks: <strong th:text="${totalMarks}">0</strong> • Pass Marks: <strong th:text="${passMarks}">0</strong>
                 </p>
             </div>
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
                 <span class="badge badge-attempt">
                     Attempt <span th:text="${attemptNumber}">1</span> of <span th:text="${maxAttempts}">3</span>
                 </span>
@@ -336,120 +379,116 @@
             </div>
         </div>
 
-        <form id="examForm"
-              th:action="@{/exam/{id}/submit(id=${exam.id})}"
-              method="post">
-
+        <form id="examForm" th:action="@{'/exam/' + ${exam.id} + '/submit'}" method="post">
             <input type="hidden" name="submissionReason" id="submissionReasonInput" value="NORMAL">
             <input type="hidden" name="violationCount" id="violationCountInput" value="0">
 
-            <section class="question-card"
-                     th:each="question, stat : ${questions}"
-                     th:id="'qcard-' + ${stat.count}">
-
+            <section class="question-card" th:each="question, stat : ${questions}" th:id="'qcard-' + ${stat.count}">
                 <h3>
                     <span th:text="${stat.count}">1</span>.
-                    <span th:text="${question.questionText}">Question Text</span>
-                    <span style="float: right; font-size: 13px; color: #64748b; font-weight: normal;">
-                        [<span th:text="${question.marks}">1</span> Mark]
+                    <span th:text="${question.questionText}">Question Prompt</span>
+
+                    <!-- Question Type Badges -->
+                    <span th:if="${question.questionType == 'SINGLE_CHOICE'}" class="q-type-badge type-single">Single Choice (1 Option)</span>
+                    <span th:if="${question.questionType == 'MULTIPLE_SELECT'}" class="q-type-badge type-multi">Multiple Select (Check all that apply)</span>
+                    <span th:if="${question.questionType == 'FILL_BLANKS'}" class="q-type-badge type-fill">Fill in the Blank</span>
+
+                    <span style="float: right; font-size: 13px; color: #16a34a; font-weight: 700;">
+                        [<span th:text="${question.marks}">4</span> Marks]
                     </span>
                 </h3>
 
-                <label class="option-label">
-                    <input type="radio"
-                           th:name="${'question_' + question.id}"
-                           th:data-qnum="${stat.count}"
-                           value="A"
-                           onchange="onAnswerSelected(this)">
-                    <span th:text="${question.optionA}">Option A</span>
-                </label>
+                <!-- CASE 1: Single Choice (Radio) -->
+                <div th:if="${question.questionType == 'SINGLE_CHOICE'}">
+                    <label class="option-label">
+                        <input type="radio" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" value="A" onchange="onRadioChanged(this)">
+                        <span>A. <span th:text="${question.optionA}">Option A</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" value="B" onchange="onRadioChanged(this)">
+                        <span>B. <span th:text="${question.optionB}">Option B</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" value="C" onchange="onRadioChanged(this)">
+                        <span>C. <span th:text="${question.optionC}">Option C</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" value="D" onchange="onRadioChanged(this)">
+                        <span>D. <span th:text="${question.optionD}">Option D</span></span>
+                    </label>
+                </div>
 
-                <label class="option-label">
-                    <input type="radio"
-                           th:name="${'question_' + question.id}"
-                           th:data-qnum="${stat.count}"
-                           value="B"
-                           onchange="onAnswerSelected(this)">
-                    <span th:text="${question.optionB}">Option B</span>
-                </label>
+                <!-- CASE 2: Multiple Select (Checkboxes) -->
+                <div th:if="${question.questionType == 'MULTIPLE_SELECT'}">
+                    <label class="option-label">
+                        <input type="checkbox" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" value="A" onchange="onCheckboxChanged(this)">
+                        <span>A. <span th:text="${question.optionA}">Option A</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="checkbox" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" value="B" onchange="onCheckboxChanged(this)">
+                        <span>B. <span th:text="${question.optionB}">Option B</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="checkbox" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" value="C" onchange="onCheckboxChanged(this)">
+                        <span>C. <span th:text="${question.optionC}">Option C</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="checkbox" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" value="D" onchange="onCheckboxChanged(this)">
+                        <span>D. <span th:text="${question.optionD}">Option D</span></span>
+                    </label>
+                </div>
 
-                <label class="option-label">
-                    <input type="radio"
-                           th:name="${'question_' + question.id}"
-                           th:data-qnum="${stat.count}"
-                           value="C"
-                           onchange="onAnswerSelected(this)">
-                    <span th:text="${question.optionC}">Option C</span>
-                </label>
-
-                <label class="option-label">
-                    <input type="radio"
-                           th:name="${'question_' + question.id}"
-                           th:data-qnum="${stat.count}"
-                           value="D"
-                           onchange="onAnswerSelected(this)">
-                    <span th:text="${question.optionD}">Option D</span>
-                </label>
+                <!-- CASE 3: Fill in the Blanks (Text Input) -->
+                <div th:if="${question.questionType == 'FILL_BLANKS'}" class="fill-blank-box">
+                    <input type="text" class="fill-blank-input" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" placeholder="Type your answer here..." oninput="onTextChanged(this)">
+                </div>
             </section>
         </form>
     </div>
 
-    <!-- Right Sidebar Question Navigation & Timer Summary -->
+    <!-- Right Sidebar Question Navigation & Summary -->
     <div class="sidebar">
         <div class="palette-card">
             <h3>Question Palette</h3>
 
             <div class="palette-grid">
-                <button type="button"
-                        th:each="question, stat : ${questions}"
-                        th:id="'palette-btn-' + ${stat.count}"
-                        class="palette-btn"
-                        th:text="${stat.count}"
-                        th:onclick="'scrollToQuestion(' + ${stat.count} + ')'">
+                <button type="button" th:each="question, stat : ${questions}" th:id="'palette-btn-' + ${stat.count}" class="palette-btn" th:text="${stat.count}" th:onclick="'scrollToQuestion(' + ${stat.count} + ')'">
                     1
                 </button>
             </div>
 
             <div class="stat-row">
-                <span>Total Questions:</span>
+                <span>Total Items:</span>
                 <span class="stat-value" th:text="${#lists.size(questions)}">5</span>
             </div>
             <div class="stat-row">
                 <span>Answered:</span>
-                <span class="stat-value" id="answeredCount">0</span>
+                <span class="stat-value" id="answeredCount" style="color: #16a34a;">0</span>
             </div>
             <div class="stat-row">
                 <span>Remaining:</span>
-                <span class="stat-value" id="unansweredCount" th:text="${#lists.size(questions)}">5</span>
+                <span class="stat-value" id="unansweredCount" style="color: #dc2626;" th:text="${#lists.size(questions)}">5</span>
             </div>
-            <div class="stat-row" style="color: #b91c1c;">
-                <span>Security Warnings:</span>
-                <span class="stat-value" id="violationCountDisplay">0 / <span th:text="${maxViolations}">3</span></span>
+            <div class="stat-row">
+                <span>Integrity Strikes:</span>
+                <span class="stat-value" id="violationCountDisplay">0 / [[${maxViolations}]]</span>
             </div>
 
-            <button type="button" class="submit-btn" onclick="confirmManualSubmit()">
-                Submit Final Exam
-            </button>
+            <button type="button" class="submit-btn" onclick="confirmManualSubmit()">Submit Final Examination</button>
         </div>
     </div>
-</main>
+</div>
 
-<!-- Security Violation Alert Modal -->
+<!-- Modal Alert for Integrity Strikes -->
 <div class="modal-overlay" id="violationModal">
     <div class="modal-box">
-        <h2 id="violationTitle">Security Alert: Focus Lost</h2>
-        <p id="violationMessage">
-            You switched away from the examination tab or exited fullscreen mode.
-            This action has been logged on the server.
-        </p>
-        <button class="modal-btn" onclick="acknowledgeViolation()">
-            I Understand & Resume Exam
-        </button>
+        <h2 id="violationTitle">Security Warning</h2>
+        <p id="violationMessage">Violation detected. Please return to the exam window.</p>
+        <button type="button" class="modal-btn" onclick="acknowledgeViolation()">I Understand & Return</button>
     </div>
 </div>
 
 <script th:inline="javascript">
-    /* Global Exam Configuration */
     const EXAM_ID = /*[[${exam.id}]]*/ 1;
     const DURATION_MINUTES = /*[[${exam.durationMinutes}]]*/ 30;
     const MAX_VIOLATIONS = /*[[${maxViolations}]]*/ 3;
@@ -459,30 +498,52 @@
     let violationCount = 0;
     let examSubmitted = false;
 
-    // Countdown Timer Loop
+    // Countdown Timer Engine
     const timerInterval = setInterval(() => {
         if (timeRemainingSeconds <= 0) {
             clearInterval(timerInterval);
-            triggerAutoSubmit("TIMEOUT", "Time has expired! Submitting your examination answers automatically.");
+            triggerAutoSubmit("TIMEOUT", "Time expired! Your examination is being submitted automatically.");
             return;
         }
 
         timeRemainingSeconds--;
-        const minutes = Math.floor(timeRemainingSeconds / 60);
-        const seconds = timeRemainingSeconds % 60;
-        document.getElementById('countdown').textContent =
-            String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        const mins = Math.floor(timeRemainingSeconds / 60);
+        const secs = timeRemainingSeconds % 60;
+        const displayEl = document.getElementById('timerDisplay');
+        displayEl.textContent = (mins < 10 ? "0" + mins : mins) + ":" + (secs < 10 ? "0" + secs : secs);
 
-        if (timeRemainingSeconds <= 300) { // 5 minutes warning
-            document.getElementById('timerBox').classList.add('timer-warning');
+        if (timeRemainingSeconds < 120) {
+            displayEl.classList.add('timer-warning');
         }
     }, 1000);
 
-    // Question selection palette updater
-    function onAnswerSelected(radioInput) {
+    // Answer Palette Tracker Functions
+    function onRadioChanged(radioInput) {
         const qNum = radioInput.getAttribute('data-qnum');
         const pBtn = document.getElementById('palette-btn-' + qNum);
         if (pBtn) pBtn.classList.add('answered');
+        updatePaletteStats();
+    }
+
+    function onCheckboxChanged(checkboxInput) {
+        const qNum = checkboxInput.getAttribute('data-qnum');
+        const pBtn = document.getElementById('palette-btn-' + qNum);
+        const card = document.getElementById('qcard-' + qNum);
+        const anyChecked = card.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+        if (pBtn) {
+            if (anyChecked) pBtn.classList.add('answered');
+            else pBtn.classList.remove('answered');
+        }
+        updatePaletteStats();
+    }
+
+    function onTextChanged(textInput) {
+        const qNum = textInput.getAttribute('data-qnum');
+        const pBtn = document.getElementById('palette-btn-' + qNum);
+        if (pBtn) {
+            if (textInput.value.trim().length > 0) pBtn.classList.add('answered');
+            else pBtn.classList.remove('answered');
+        }
         updatePaletteStats();
     }
 
@@ -497,60 +558,42 @@
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // Anti-Cheating Monitoring
+    // Anti-Cheating Proctoring
     function handleSecurityViolation(reason) {
         if (examSubmitted) return;
         violationCount++;
         document.getElementById('violationCountInput').value = violationCount;
         document.getElementById('violationCountDisplay').textContent = violationCount + " / " + MAX_VIOLATIONS;
 
-        // Log violation to backend
         fetch('/api/exam/' + EXAM_ID + '/violation', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'violationCount=' + violationCount + '&violationType=' + encodeURIComponent(reason)
-        }).catch(err => console.log('Violation report offline standby:', err));
-
-        // Sync with Firestore if active
-        if (window.logViolationToFirestore) {
-            window.logViolationToFirestore({
-                examId: EXAM_ID,
-                violationReason: reason,
-                violationNumber: violationCount
-            });
-        }
+        }).catch(err => console.log('Violation standby sync:', err));
 
         if (violationCount >= MAX_VIOLATIONS) {
-            triggerAutoSubmit("VIOLATION_LIMIT", "Maximum security violations (" + MAX_VIOLATIONS + ") exceeded. Your examination has been automatically submitted.");
+            triggerAutoSubmit("VIOLATION_LIMIT", "Maximum security violations exceeded (" + MAX_VIOLATIONS + "). Examination automatically terminated.");
         } else {
-            document.getElementById('violationTitle').textContent = "Security Warning #" + violationCount;
+            document.getElementById('violationTitle').textContent = "Security Strike #" + violationCount;
             document.getElementById('violationMessage').textContent =
-                "A violation was detected: " + reason + ". Institutional policy permits a maximum of " + MAX_VIOLATIONS + " warnings before automatic submission.";
+                "A violation was logged: " + reason + ". Institutional protocol permits up to " + MAX_VIOLATIONS + " strikes before automatic termination.";
             document.getElementById('violationModal').style.display = 'flex';
         }
     }
 
     function acknowledgeViolation() {
         document.getElementById('violationModal').style.display = 'none';
-        try {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            }
-        } catch(e) {}
     }
 
-    // Monitor tab switching and window blur
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            handleSecurityViolation("Switched browser tab or minimized window");
-        }
+        if (document.hidden) handleSecurityViolation("Switched browser tab or minimized window");
     });
 
     window.addEventListener('blur', () => {
-        handleSecurityViolation("Left examination window");
+        handleSecurityViolation("Defocused examination window");
     });
 
-    // Disable context menu and copy shortcuts
+    // Disable context menu and key shortcuts
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', e => {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'v' || e.key === 'u' || e.key === 'p')) {
@@ -577,6 +620,5 @@
         document.getElementById('examForm').submit();
     }
 </script>
-
 </body>
 </html>

@@ -30,16 +30,16 @@
 
         .card-container {
             width: 100%;
-            max-width: 680px;
+            max-width: 720px;
             background: #ffffff;
             border-radius: 20px;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
-            padding: 40px;
+            padding: 38px;
         }
 
         .header-box {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 26px;
         }
 
         .badge-tenant {
@@ -80,14 +80,20 @@
             gap: 10px;
         }
 
+        .form-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin: 20px 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+            grid-column: span 2;
+        }
+
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 18px;
-        }
-
-        .form-grid.full-width {
-            grid-column: span 2;
+            gap: 16px;
         }
 
         .form-group {
@@ -106,17 +112,17 @@
             color: #ef4444;
         }
 
-        input, select, textarea {
+        input, select {
             width: 100%;
-            padding: 12px 14px;
+            padding: 11px 13px;
             border: 1.5px solid #cbd5e1;
-            border-radius: 10px;
+            border-radius: 9px;
             font-size: 14px;
             transition: all 0.2s;
             background: #f8fafc;
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: #2563eb;
             background: #ffffff;
@@ -173,7 +179,7 @@
     <div class="header-box">
         <span class="badge-tenant">MULTI-TENANT ONBOARDING</span>
         <h1>Register New Institution</h1>
-        <p>Connect your Engineering College, Degree Institute, or University to the central examination network</p>
+        <p>Connect your Engineering College, Degree Institute, or University with dedicated Tenant Isolation</p>
     </div>
 
     <!-- Error message if registration fails -->
@@ -184,6 +190,8 @@
 
     <form th:action="@{/register-college}" method="post">
         <div class="form-grid">
+            <div class="form-section-title">🏛️ Institution Details</div>
+
             <div class="form-group" style="grid-column: span 2;">
                 <label for="name">Institution / College Full Name <span>*</span></label>
                 <input type="text" id="name" name="name" placeholder="e.g. Apex Institute of Technology" required>
@@ -192,7 +200,7 @@
             <div class="form-group">
                 <label for="code">Institutional Code <span>*</span></label>
                 <input type="text" id="code" name="code" placeholder="e.g. AIT, JNTU, IITM" style="text-transform: uppercase;" required>
-                <div class="help-text">Unique uppercase identifier for your college tenant</div>
+                <div class="help-text">Unique uppercase tenant identifier</div>
             </div>
 
             <div class="form-group">
@@ -208,7 +216,7 @@
 
             <div class="form-group" style="grid-column: span 2;">
                 <label for="address">Campus Address / Location</label>
-                <input type="text" id="address" name="address" placeholder="e.g. Campus Road, Tech Park, Hyderabad, India">
+                <input type="text" id="address" name="address" placeholder="e.g. Tech Park Road, Hyderabad, Telangana">
             </div>
 
             <div class="form-group">
@@ -218,12 +226,30 @@
 
             <div class="form-group">
                 <label for="contactEmail">Official Institutional Email <span>*</span></label>
-                <input type="email" id="contactEmail" name="contactEmail" placeholder="admin@apex-tech.edu.in" required>
+                <input type="email" id="contactEmail" name="contactEmail" placeholder="dean@apex-tech.edu.in" required>
             </div>
 
             <div class="form-group" style="grid-column: span 2;">
                 <label for="contactPhone">Contact Phone Number</label>
                 <input type="text" id="contactPhone" name="contactPhone" placeholder="+91 98765 43210">
+            </div>
+
+            <div class="form-section-title">👤 College Administrator Account</div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="adminUsername">Administrator Username <span>*</span></label>
+                <input type="text" id="adminUsername" name="adminUsername" placeholder="e.g. ait_admin" required>
+                <div class="help-text">Used to sign in to your college governance portal once approved</div>
+            </div>
+
+            <div class="form-group">
+                <label for="adminPassword">Administrator Password <span>*</span></label>
+                <input type="password" id="adminPassword" name="adminPassword" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password <span>*</span></label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" required>
             </div>
         </div>
 
@@ -237,4 +263,3 @@
 </div>
 </body>
 </html>
-

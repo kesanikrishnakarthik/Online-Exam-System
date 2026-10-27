@@ -52,8 +52,16 @@ public class PlatformAdminController {
         if (college != null) {
             college.setStatus("APPROVED");
             collegeRepository.save(college);
+
+            // Automatically activate the College Administrator account for this tenant
+            List<UserAccount> adminUsers = userAccountRepository.findByCollegeCodeAndRole(college.getCode(), "ROLE_ADMIN");
+            for (UserAccount admin : adminUsers) {
+                admin.setStatus("ACTIVE");
+                userAccountRepository.save(admin);
+            }
+
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Institution '" + college.getName() + "' (Code: " + college.getCode() + ") has been approved!");
+                    "Institution '" + college.getName() + "' (Code: " + college.getCode() + ") approved! Administrator account is now active.");
         }
         return "redirect:/platform/dashboard";
     }
@@ -64,6 +72,13 @@ public class PlatformAdminController {
         if (college != null) {
             college.setStatus("REJECTED");
             collegeRepository.save(college);
+
+            List<UserAccount> collegeUsers = userAccountRepository.findByCollegeCode(college.getCode());
+            for (UserAccount user : collegeUsers) {
+                user.setStatus("REJECTED");
+                userAccountRepository.save(user);
+            }
+
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Institution '" + college.getName() + "' has been rejected.");
         }
@@ -76,10 +91,16 @@ public class PlatformAdminController {
         if (college != null) {
             college.setStatus("SUSPENDED");
             collegeRepository.save(college);
+
+            List<UserAccount> collegeUsers = userAccountRepository.findByCollegeCode(college.getCode());
+            for (UserAccount user : collegeUsers) {
+                user.setStatus("SUSPENDED");
+                userAccountRepository.save(user);
+            }
+
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "Institution '" + college.getName() + "' has been suspended.");
+                    "Institution '" + college.getName() + "' and its associated accounts have been suspended.");
         }
         return "redirect:/platform/dashboard";
     }
 }
-

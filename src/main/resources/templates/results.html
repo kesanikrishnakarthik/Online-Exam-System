@@ -150,6 +150,11 @@
                     <span th:text="${result.percentage + '%'}">80%</span>
                 </div>
                 <div>
+                    <strong>Status:</strong>
+                    <span th:if="${result.passFailStatus == 'PASS'}" style="color: #16a34a; font-weight: 700;">PASSED</span>
+                    <span th:unless="${result.passFailStatus == 'PASS'}" style="color: #dc2626; font-weight: 700;">FAILED</span>
+                </div>
+                <div>
                     <strong>Attempt:</strong>
                     <span th:text="'Attempt ' + ${result.attemptNumber}">Attempt 1</span>
                 </div>

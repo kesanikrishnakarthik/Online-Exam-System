@@ -1,11 +1,15 @@
 package com.onlineexam.online_exam;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -146,6 +150,7 @@ public class ExamController {
         model.addAttribute("collegeName", collegeName);
         model.addAttribute("questions", questions);
         model.addAttribute("totalMarks", totalMarks);
+        model.addAttribute("passMarks", exam.getPassMarks());
         model.addAttribute("attempt", attempt);
         model.addAttribute("attemptNumber", attempt.getAttemptNumber());
         model.addAttribute("maxAttempts", exam.getMaxAttempts());
@@ -157,9 +162,9 @@ public class ExamController {
     @PostMapping("/exam/{examId}/submit")
     public String submitExam(
             @PathVariable Long examId,
-            @RequestParam Map<String, String> answers,
             @RequestParam(required = false, defaultValue = "NORMAL") String submissionReason,
             @RequestParam(required = false, defaultValue = "0") int violationCount,
+            HttpServletRequest request,
             Authentication authentication,
             Model model) {
 
@@ -179,12 +184,7 @@ public class ExamController {
 
         for (Question question : questions) {
             totalMarks += question.getMarks();
-
-            String answer = answers.get("question_" + question.getId());
-
-            if (answer != null && answer.trim().equalsIgnoreCase(question.getCorrectAnswer().trim())) {
-                score += question.getMarks();
-            }
+            score += evaluateQuestionScore(question, request);
         }
 
         // Finalize attempt
@@ -213,7 +213,9 @@ public class ExamController {
             examAttemptRepository.save(attempt);
         }
 
-        // Save official result record with collegeCode and rollNumber
+        String passFailStatus = (score >= exam.getPassMarks()) ? "PASS" : "FAIL";
+
+        // Save official audited result record with collegeCode, rollNumber, and pass/fail evaluation
         ExamResult result = new ExamResult(
                 exam.getId(),
                 exam.getTitle(),
@@ -228,6 +230,7 @@ public class ExamController {
                 violationCount,
                 submissionReason
         );
+        result.setPassFailStatus(passFailStatus);
         examResultRepository.save(result);
 
         double percentage = totalMarks > 0 ? Math.round((score * 100.0 / totalMarks) * 100.0) / 100.0 : 0.0;
@@ -236,6 +239,8 @@ public class ExamController {
         model.addAttribute("score", score);
         model.addAttribute("totalMarks", totalMarks);
         model.addAttribute("percentage", percentage);
+        model.addAttribute("passFailStatus", passFailStatus);
+        model.addAttribute("passMarks", exam.getPassMarks());
         model.addAttribute("attemptNumber", attemptNumber);
         model.addAttribute("maxAttempts", exam.getMaxAttempts());
         model.addAttribute("submissionReason", submissionReason);
@@ -243,6 +248,73 @@ public class ExamController {
         model.addAttribute("collegeName", collegeName);
 
         return "exam-result";
+    }
+
+    /**
+     * Automatic Server-Side Grading Engine Supporting:
+     * 1. Single-Choice MCQ
+     * 2. Multiple-Select Checkboxes (All-or-Nothing or Partial Credit)
+     * 3. Fill-in-the-Blanks (Trimmed, Case-Insensitive, Multi-accepted answers)
+     */
+    public static int calculateScore(Question question, String textAnswer, String[] multiAnswers) {
+        if (question == null) return 0;
+        String type = question.getQuestionType();
+
+        if ("MULTIPLE_SELECT".equalsIgnoreCase(type)) {
+            if (multiAnswers == null || multiAnswers.length == 0) return 0;
+
+            Set<String> studentAnswers = Arrays.stream(multiAnswers)
+                    .map(String::trim)
+                    .map(String::toUpperCase)
+                    .collect(Collectors.toSet());
+
+            Set<String> correctAnswers = Arrays.stream(question.getCorrectAnswer().split(","))
+                    .map(String::trim)
+                    .map(String::toUpperCase)
+                    .collect(Collectors.toSet());
+
+            if ("PARTIAL_CREDIT".equalsIgnoreCase(question.getMarkingScheme())) {
+                long correctSelected = studentAnswers.stream().filter(correctAnswers::contains).count();
+                long incorrectSelected = studentAnswers.stream().filter(a -> !correctAnswers.contains(a)).count();
+                if (correctAnswers.isEmpty()) return 0;
+                double fraction = Math.max(0.0, (double) (correctSelected - incorrectSelected) / correctAnswers.size());
+                return (int) Math.round(fraction * question.getMarks());
+            } else {
+                // ALL_OR_NOTHING scheme: student set must match correct set exactly
+                return studentAnswers.equals(correctAnswers) ? question.getMarks() : 0;
+            }
+
+        } else if ("FILL_BLANKS".equalsIgnoreCase(type)) {
+            if (textAnswer == null || textAnswer.isBlank()) return 0;
+
+            String studentText = textAnswer.trim();
+            String[] accepted = question.getCorrectAnswer().split(",");
+
+            for (String acc : accepted) {
+                String target = acc.trim();
+                if (question.isCaseSensitive()) {
+                    if (studentText.equals(target)) return question.getMarks();
+                } else {
+                    if (studentText.equalsIgnoreCase(target)) return question.getMarks();
+                }
+            }
+            return 0;
+
+        } else {
+            // SINGLE_CHOICE (MCQ)
+            if (textAnswer != null && question.getCorrectAnswer() != null
+                    && textAnswer.trim().equalsIgnoreCase(question.getCorrectAnswer().trim())) {
+                return question.getMarks();
+            }
+            return 0;
+        }
+    }
+
+    private int evaluateQuestionScore(Question question, HttpServletRequest request) {
+        String paramName = "question_" + question.getId();
+        String textAnswer = request.getParameter(paramName);
+        String[] multiAnswers = request.getParameterValues(paramName);
+        return calculateScore(question, textAnswer, multiAnswers);
     }
 
     @PostMapping("/api/exam/{examId}/violation")

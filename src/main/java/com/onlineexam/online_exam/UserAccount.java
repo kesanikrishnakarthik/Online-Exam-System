@@ -23,6 +23,7 @@ public class UserAccount {
     private String fullName;
     private String email;
     private String institutionalId; // Student Roll Number or Faculty Employee ID
+    private String designation; // Professor, Assistant Professor, HOD, Dean
     private String role; // ROLE_STUDENT, ROLE_FACULTY, ROLE_ADMIN, ROLE_PLATFORM_ADMIN
     private String collegeCode;
     private String collegeName;
@@ -31,7 +32,7 @@ public class UserAccount {
     private String academicYear;
     private String semester;
     private String section;
-    private String status = "ACTIVE"; // ACTIVE, PENDING_APPROVAL, SUSPENDED
+    private String status = "ACTIVE"; // ACTIVE, PENDING, SUSPENDED
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public UserAccount() {
@@ -105,6 +106,14 @@ public class UserAccount {
 
     public void setRollNumberOrFacultyId(String id) {
         this.institutionalId = id;
+    }
+
+    public String getDesignation() {
+        return designation;
+    }
+
+    public void setDesignation(String designation) {
+        this.designation = designation;
     }
 
     public String getRole() {

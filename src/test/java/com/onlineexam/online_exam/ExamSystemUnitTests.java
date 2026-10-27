@@ -204,4 +204,133 @@ class ExamSystemUnitTests {
         assertEquals("AIT", collegeCode);
         assertEquals("21B91A0501", rollNumber);
     }
+
+    @Test
+    @DisplayName("Verify Single Choice MCQ Grading Logic")
+    void testSingleChoiceGrading() {
+        Question q = new Question(101L, "What is the return type of hashCode()?", "int", "long", "void", "String", "A", 4);
+        q.setQuestionType("SINGLE_CHOICE");
+
+        // Correct answer
+        int scoreCorrect = ExamController.calculateScore(q, "A", null);
+        assertEquals(4, scoreCorrect, "Correct single choice option must award full marks");
+
+        // Incorrect answer
+        int scoreWrong = ExamController.calculateScore(q, "B", null);
+        assertEquals(0, scoreWrong, "Incorrect single choice option must award 0 marks");
+
+        // Case insensitivity of option letter
+        int scoreCaseInsensitive = ExamController.calculateScore(q, "a", null);
+        assertEquals(4, scoreCaseInsensitive, "Option match must be case-insensitive");
+
+        // Blank answer
+        int scoreBlank = ExamController.calculateScore(q, "", null);
+        assertEquals(0, scoreBlank, "Blank answer must award 0 marks");
+    }
+
+    @Test
+    @DisplayName("Verify Multiple Select Checkbox All-or-Nothing Grading Logic")
+    void testMultipleSelectAllOrNothingGrading() {
+        Question q = new Question(101L, "Select valid Java access modifiers", "MULTIPLE_SELECT",
+                "public", "private", "protected", "friend", "A,B,C", "ALL_OR_NOTHING", false, 6, 0);
+
+        // Exact match
+        int scoreExact = ExamController.calculateScore(q, null, new String[]{"A", "B", "C"});
+        assertEquals(6, scoreExact, "Exact selection match must award full marks under ALL_OR_NOTHING");
+
+        // Partial match (missing C)
+        int scorePartial = ExamController.calculateScore(q, null, new String[]{"A", "B"});
+        assertEquals(0, scorePartial, "Missing an answer in ALL_OR_NOTHING must award 0 marks");
+
+        // Extra incorrect option included (D selected)
+        int scoreExtra = ExamController.calculateScore(q, null, new String[]{"A", "B", "C", "D"});
+        assertEquals(0, scoreExtra, "Selecting an incorrect option in ALL_OR_NOTHING must award 0 marks");
+
+        // Null / empty selection
+        int scoreEmpty = ExamController.calculateScore(q, null, new String[]{});
+        assertEquals(0, scoreEmpty, "Empty selection must award 0 marks");
+    }
+
+    @Test
+    @DisplayName("Verify Multiple Select Checkbox Partial Credit Grading Logic")
+    void testMultipleSelectPartialCreditGrading() {
+        Question q = new Question(101L, "Select valid Java collection classes", "MULTIPLE_SELECT",
+                "ArrayList", "LinkedList", "Vector", "HashSet", "A,B,C", "PARTIAL_CREDIT", false, 6, 0);
+
+        // Student selects 2 of 3 correct answers: (2/3) * 6 = 4 marks
+        int scoreTwoThirds = ExamController.calculateScore(q, null, new String[]{"A", "B"});
+        assertEquals(4, scoreTwoThirds, "Partial credit should be awarded proportionally (2/3 * 6 = 4)");
+
+        // Student selects all 3 correct: 6 marks
+        int scoreAll = ExamController.calculateScore(q, null, new String[]{"A", "B", "C"});
+        assertEquals(6, scoreAll, "All correct selections must award full marks");
+
+        // Student selects 2 correct and 1 incorrect: fraction = max(0, (2 - 1) / 3) = 1/3 * 6 = 2 marks
+        int scoreWithPenalty = ExamController.calculateScore(q, null, new String[]{"A", "B", "D"});
+        assertEquals(2, scoreWithPenalty, "Incorrect selections penalize correct selections proportionally");
+    }
+
+    @Test
+    @DisplayName("Verify Fill-in-the-Blanks Grading Logic (Trimming, Case-Insensitive, Multi-accepted)")
+    void testFillInTheBlanksGrading() {
+        Question q = new Question(101L, "Where is class metadata stored?", "FILL_BLANKS",
+                "", "", "", "", "metaspace, method area, permgen", "ALL_OR_NOTHING", false, 5, 0);
+
+        // Match first accepted answer with whitespace padding
+        int score1 = ExamController.calculateScore(q, "  metaspace  ", null);
+        assertEquals(5, score1, "Whitespace-padded answer must be trimmed and matched");
+
+        // Match second accepted answer in uppercase
+        int score2 = ExamController.calculateScore(q, "METHOD AREA", null);
+        assertEquals(5, score2, "Case-insensitive matching must award full marks");
+
+        // Match third accepted answer
+        int score3 = ExamController.calculateScore(q, "permgen", null);
+        assertEquals(5, score3, "Any alternative in comma-separated accepted answers must match");
+
+        // Wrong answer
+        int scoreWrong = ExamController.calculateScore(q, "heap", null);
+        assertEquals(0, scoreWrong, "Incorrect fill-in answer must award 0 marks");
+    }
+
+    @Test
+    @DisplayName("Verify Case-Sensitive Fill-in-the-Blanks Grading Logic")
+    void testCaseSensitiveFillInTheBlanks() {
+        Question q = new Question(101L, "Enter uppercase acronym", "FILL_BLANKS",
+                "", "", "", "", "REST", "ALL_OR_NOTHING", true, 5, 0);
+
+        int scoreCorrect = ExamController.calculateScore(q, "REST", null);
+        assertEquals(5, scoreCorrect, "Exact case match must award full marks");
+
+        int scoreWrongCase = ExamController.calculateScore(q, "rest", null);
+        assertEquals(0, scoreWrongCase, "Case mismatch in case-sensitive mode must award 0 marks");
+    }
+
+    @Test
+    @DisplayName("Verify Pass / Fail Calculation and Percentage Evaluation")
+    void testPassFailCalculation() {
+        Exam exam = new Exam("Web Technologies", "WT", 40, 50);
+        exam.setPassMarks(20); // 40% threshold
+
+        // Student A scores 25 (Pass)
+        int scoreA = 25;
+        String statusA = (scoreA >= exam.getPassMarks()) ? "PASS" : "FAIL";
+        double percentageA = (scoreA * 100.0) / exam.getTotalMarks();
+        assertEquals("PASS", statusA);
+        assertEquals(50.0, percentageA);
+
+        // Student B scores 19 (Fail)
+        int scoreB = 19;
+        String statusB = (scoreB >= exam.getPassMarks()) ? "PASS" : "FAIL";
+        double percentageB = (scoreB * 100.0) / exam.getTotalMarks();
+        assertEquals("FAIL", statusB);
+        assertEquals(38.0, percentageB);
+
+        // ExamResult entity evaluates pass/fail status
+        ExamResult resPass = new ExamResult(1L, "Web Technologies", "WT", "studentA", scoreA, 50);
+        assertEquals("PASS", resPass.getPassFailStatus());
+
+        ExamResult resFail = new ExamResult(1L, "Web Technologies", "WT", "studentB", scoreB, 50);
+        assertEquals("FAIL", resFail.getPassFailStatus());
+    }
 }

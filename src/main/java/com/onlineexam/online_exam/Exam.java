@@ -1,5 +1,6 @@
 package com.onlineexam.online_exam;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,8 +15,16 @@ public class Exam {
 
     private String title;
     private String subject;
+    private String subjectCode = "CS301";
+
+    @Column(length = 2000)
+    private String instructions = "1. Answer all questions.\n2. Do not switch tabs or minimize the browser window.\n3. Automatic submission triggers upon 3 violations or when the timer hits 00:00.";
+
     private int durationMinutes;
     private int totalMarks;
+    private int passMarks = 8; // Default passing threshold
+    private boolean negativeMarking = false;
+
     private String collegeCode = "AIT";
     private String college = "Apex Institute of Technology";
     private String department = "Computer Science & Engineering";
@@ -35,6 +44,7 @@ public class Exam {
         this.subject = subject;
         this.durationMinutes = durationMinutes;
         this.totalMarks = totalMarks;
+        this.passMarks = (int) Math.round(totalMarks * 0.40);
     }
 
     public Exam(String title, String subject, int durationMinutes, int totalMarks,
@@ -43,6 +53,7 @@ public class Exam {
         this.subject = subject;
         this.durationMinutes = durationMinutes;
         this.totalMarks = totalMarks;
+        this.passMarks = (int) Math.round(totalMarks * 0.40);
         this.college = college;
         this.department = department;
         this.maxAttempts = maxAttempts;
@@ -75,6 +86,22 @@ public class Exam {
         this.subject = subject;
     }
 
+    public String getSubjectCode() {
+        return subjectCode;
+    }
+
+    public void setSubjectCode(String subjectCode) {
+        this.subjectCode = subjectCode;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
+    }
+
     public int getDurationMinutes() {
         return durationMinutes;
     }
@@ -89,6 +116,25 @@ public class Exam {
 
     public void setTotalMarks(int totalMarks) {
         this.totalMarks = totalMarks;
+        if (this.passMarks == 0 && totalMarks > 0) {
+            this.passMarks = (int) Math.round(totalMarks * 0.40);
+        }
+    }
+
+    public int getPassMarks() {
+        return passMarks > 0 ? passMarks : Math.max(1, (int) Math.round(totalMarks * 0.40));
+    }
+
+    public void setPassMarks(int passMarks) {
+        this.passMarks = passMarks;
+    }
+
+    public boolean isNegativeMarking() {
+        return negativeMarking;
+    }
+
+    public void setNegativeMarking(boolean negativeMarking) {
+        this.negativeMarking = negativeMarking;
     }
 
     public String getCollegeCode() {

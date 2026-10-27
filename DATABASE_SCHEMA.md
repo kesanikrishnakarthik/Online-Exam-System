@@ -26,8 +26,9 @@ Centralized user authentication and institutional identity mapping.
 * `password` (VARCHAR): BCrypt-hashed password
 * `fullName` (VARCHAR): User's legal name
 * `email` (VARCHAR): Institutional email
-* `rollNumberOrFacultyId` (VARCHAR): Student College Roll / Hall Ticket Number or Faculty Employee ID
-* `role` (VARCHAR): Security Role (`ROLE_PLATFORM_ADMIN`, `ROLE_COLLEGE_ADMIN`, `ROLE_FACULTY`, `ROLE_STUDENT`)
+* `institutionalId` (VARCHAR): Student College Roll / Hall Ticket Number or Faculty Employee ID
+* `designation` (VARCHAR): Faculty title/designation (e.g., "Assistant Professor", "HOD")
+* `role` (VARCHAR): Security Role (`ROLE_PLATFORM_ADMIN`, `ROLE_ADMIN`, `ROLE_FACULTY`, `ROLE_STUDENT`)
 * `collegeCode` (VARCHAR, Indexed): Associated College Tenant Code (e.g., "AIT", "NIE")
 * `collegeName` (VARCHAR): Institution Name snapshot
 * `department` (VARCHAR): Academic department (e.g., "Computer Science & Engineering")
@@ -43,8 +44,12 @@ Partitioned by tenant `collegeCode`.
 * `id` (BIGINT, Primary Key, Auto-increment)
 * `title` (VARCHAR): Examination title
 * `subject` (VARCHAR): Subject name
+* `subjectCode` (VARCHAR): Course/Subject identifier (e.g., "CS301")
+* `instructions` (TEXT): Exam-taking directives and proctoring policy
 * `durationMinutes` (INT): Total time allocated (e.g., 30)
 * `totalMarks` (INT): Calculated sum of question marks
+* `passMarks` (INT): Minimum score threshold for passing (defaults to 40% of totalMarks)
+* `negativeMarking` (BOOLEAN): Enables penalty deduction for incorrect choices
 * `college` (VARCHAR): College institution name (e.g., "Apex Institute of Technology")
 * `collegeCode` (VARCHAR, Indexed): Tenant identifier ("AIT", "NIE")
 * `department` (VARCHAR): Academic department
@@ -54,18 +59,26 @@ Partitioned by tenant `collegeCode`.
 * `maxAttempts` (INT): Maximum allowed attempts per student (Default: `3`)
 * `maxViolations` (INT): Maximum allowed integrity violations (Default: `3`)
 * `published` (BOOLEAN): Publication status
-* `lifecycleStatus` (VARCHAR): `DRAFT`, `SCHEDULED`, `LIVE`, `CONCLUDED`
+* `lifecycleStatus` (VARCHAR): `DRAFT`, `PUBLISHED`, `CLOSED`
 
 ### D. `Question` (Item Bank Entity)
 * `id` (BIGINT, Primary Key, Auto-increment)
 * `examId` (BIGINT, Foreign Key, Indexed): Linked Exam ID
 * `questionText` (TEXT): The question prompt
-* `optionA` (TEXT): Choice A
+* `questionType` (VARCHAR): Item type: `SINGLE_CHOICE` (MCQ), `MULTIPLE_SELECT` (Checkboxes), or `FILL_BLANKS`
+* `optionA` (TEXT): Choice A (Used for SINGLE_CHOICE and MULTIPLE_SELECT)
 * `optionB` (TEXT): Choice B
 * `optionC` (TEXT): Choice C
 * `optionD` (TEXT): Choice D
-* `correctAnswer` (VARCHAR): Correct option key (`A`, `B`, `C`, or `D`)
+* `correctAnswer` (VARCHAR, Length 1000): Answer key:
+  - Single Choice: Single option key (e.g., `B`)
+  - Multiple Select: Comma-separated option keys (e.g., `A,C`)
+  - Fill-in-the-Blanks: Comma-separated accepted variations (e.g., `metaspace, method area, permgen`)
+* `markingScheme` (VARCHAR): For multiple-select: `ALL_OR_NOTHING` (exact set match) or `PARTIAL_CREDIT` (proportional)
+* `caseSensitive` (BOOLEAN): For fill-in-the-blanks case-sensitive text matching
 * `marks` (INT): Marks assigned (e.g., 4)
+* `negativeMarks` (INT): Penalty deductions for wrong responses
+* `displayOrder` (INT): Sequence ordering within the exam
 
 ### E. `ExamAttempt` (Integrity & Session Entity)
 Logs every ongoing and concluded exam session.
@@ -92,10 +105,13 @@ Immutable audit record of verified final results.
 * `examTitle` (VARCHAR)
 * `subject` (VARCHAR)
 * `studentUsername` (VARCHAR, Indexed)
+* `rollNumber` (VARCHAR): Candidate institutional roll number
 * `college` (VARCHAR)
 * `collegeCode` (VARCHAR, Indexed)
 * `score` (INT)
 * `totalMarks` (INT)
+* `percentage` (DOUBLE): Precalculated score percentage
+* `passFailStatus` (VARCHAR): Academic evaluation (`PASS` or `FAIL`)
 * `attemptNumber` (INT)
 * `submissionTime` (TIMESTAMP)
 * `violationCount` (INT)
@@ -133,3 +149,13 @@ colleges/{collegeCode}
 1. **JPA Query Filtering:** Every query in `ExamRepository`, `ExamAttemptRepository`, and `ExamResultRepository` includes `WHERE collegeCode = :collegeCode` to mathematically prevent data leakage across institutions.
 2. **Roll Number Resolution:** Students can log in directly with `COLLEGE_CODE:ROLL_NUMBER` (e.g., `AIT:21B91A0501`), which `CustomUserDetailsService` automatically resolves to the appropriate tenant record.
 3. **Firestore Security Rules:** Read and write permissions check `request.auth.token.collegeCode == resource.data.collegeCode`.
+
+---
+
+## 4. Database Persistence & Docker Volume Storage
+
+To prevent data loss on restarts, CollegeConnect uses a persistent file-based H2 database engine:
+- **JDBC Connection URL:** `jdbc:h2:file:./data/onlineexamdb;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1`
+- **Driver:** `org.h2.Driver`
+- **Hibernate DDL Mode:** `update` (preserves existing schema and registered rows, auto-applying incremental columns)
+- **Container Persistence:** `docker-compose.yml` mounts the host `./data` directory into the container's `/app/data` volume so all registered colleges, students, faculty, exams, and results survive container updates and system reboots.
