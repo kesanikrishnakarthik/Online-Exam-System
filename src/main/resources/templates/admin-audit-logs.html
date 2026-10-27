@@ -129,8 +129,16 @@
 
 <body>
 <header>
-    <h2>Apex Institute - Audit Trail</h2>
-    <a href="/admin/dashboard">← Back to Admin Dashboard</a>
+    <h2>College Administrator Portal - Audit Trail</h2>
+    <nav style="display: flex; align-items: center; gap: 20px;">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/audit-logs" style="color: white; border-bottom: 2px solid #3b82f6; padding-bottom: 4px;">Audit Logs</a>
+        <a href="/admin/results">Exam Results</a>
+        <a href="/change-password">Change Password</a>
+        <form th:action="@{/logout}" method="post" style="display:inline; margin: 0; padding: 0;">
+            <button type="submit" style="background: none; border: none; color: #fca5a5; font-weight: 600; font-size: 14px; cursor: pointer; padding: 0;">Sign Out</button>
+        </form>
+    </nav>
 </header>
 
 <main>

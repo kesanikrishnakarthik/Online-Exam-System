@@ -134,11 +134,13 @@
 <body>
 <header>
     <h2>Faculty Examination Portal</h2>
-    <nav>
+    <nav style="display: flex; align-items: center; gap: 18px;">
         <a href="/faculty/dashboard">Dashboard</a>
         <a href="/faculty/exams">Exams</a>
         <a href="/faculty/results">Results</a>
-        <a href="/login?logout" style="color: #fca5a5;">Logout</a>
+        <form th:action="@{/logout}" method="post" style="display:inline; margin: 0; padding: 0;">
+            <button type="submit" style="background: none; border: none; color: #fca5a5; font-weight: 600; font-size: 14px; cursor: pointer; padding: 0;">Logout</button>
+        </form>
     </nav>
 </header>
 

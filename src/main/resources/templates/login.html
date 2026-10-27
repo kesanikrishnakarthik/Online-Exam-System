@@ -257,6 +257,11 @@
             Invalid institutional ID or password. Please verify your credentials.
         </div>
 
+        <!-- Account Disabled / Pending Approval -->
+        <div th:if="${param.disabled}" class="alert-error">
+            Your institutional account or college registration is currently pending administrative review and approval.
+        </div>
+
         <!-- Logout Message -->
         <div th:if="${param.logout}" class="alert-logout">
             You have been safely signed out.

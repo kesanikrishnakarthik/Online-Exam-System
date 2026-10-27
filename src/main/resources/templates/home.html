@@ -343,17 +343,13 @@
 <div class="colleges-banner">
     <h4>Approved Educational Institution Tenants</h4>
     <div class="college-pills">
-        <div class="college-chip">
+        <div th:each="c : ${approvedColleges}" class="college-chip">
             <span>🏛️</span>
-            <span>Apex Institute of Technology <code>(AIT)</code></span>
+            <span><span th:text="${c.name}">Apex Institute of Technology</span> <code th:text="'(' + ${c.code} + ')'">(AIT)</code></span>
         </div>
-        <div class="college-chip">
-            <span>🎓</span>
-            <span>National Institute of Engineering <code>(NIE)</code></span>
-        </div>
-        <div class="college-chip">
-            <span>⏳</span>
-            <span>St. Xavier's College <code>(SXC)</code> - <em>Pending Approval</em></span>
+        <div th:if="${#lists.isEmpty(approvedColleges)}" class="college-chip" style="opacity: 0.7;">
+            <span>ℹ️</span>
+            <span>No approved institutions currently active.</span>
         </div>
     </div>
 </div>

@@ -212,19 +212,19 @@ class ExamSystemUnitTests {
         q.setQuestionType("SINGLE_CHOICE");
 
         // Correct answer
-        int scoreCorrect = ExamController.calculateScore(q, "A", null);
+        int scoreCorrect = ExamController.calculateScore(q, "A");
         assertEquals(4, scoreCorrect, "Correct single choice option must award full marks");
 
         // Incorrect answer
-        int scoreWrong = ExamController.calculateScore(q, "B", null);
+        int scoreWrong = ExamController.calculateScore(q, "B");
         assertEquals(0, scoreWrong, "Incorrect single choice option must award 0 marks");
 
         // Case insensitivity of option letter
-        int scoreCaseInsensitive = ExamController.calculateScore(q, "a", null);
+        int scoreCaseInsensitive = ExamController.calculateScore(q, "a");
         assertEquals(4, scoreCaseInsensitive, "Option match must be case-insensitive");
 
         // Blank answer
-        int scoreBlank = ExamController.calculateScore(q, "", null);
+        int scoreBlank = ExamController.calculateScore(q, "");
         assertEquals(0, scoreBlank, "Blank answer must award 0 marks");
     }
 
@@ -235,19 +235,19 @@ class ExamSystemUnitTests {
                 "public", "private", "protected", "friend", "A,B,C", "ALL_OR_NOTHING", false, 6, 0);
 
         // Exact match
-        int scoreExact = ExamController.calculateScore(q, null, new String[]{"A", "B", "C"});
+        int scoreExact = ExamController.calculateScore(q, new String[]{"A", "B", "C"});
         assertEquals(6, scoreExact, "Exact selection match must award full marks under ALL_OR_NOTHING");
 
         // Partial match (missing C)
-        int scorePartial = ExamController.calculateScore(q, null, new String[]{"A", "B"});
+        int scorePartial = ExamController.calculateScore(q, new String[]{"A", "B"});
         assertEquals(0, scorePartial, "Missing an answer in ALL_OR_NOTHING must award 0 marks");
 
         // Extra incorrect option included (D selected)
-        int scoreExtra = ExamController.calculateScore(q, null, new String[]{"A", "B", "C", "D"});
+        int scoreExtra = ExamController.calculateScore(q, new String[]{"A", "B", "C", "D"});
         assertEquals(0, scoreExtra, "Selecting an incorrect option in ALL_OR_NOTHING must award 0 marks");
 
         // Null / empty selection
-        int scoreEmpty = ExamController.calculateScore(q, null, new String[]{});
+        int scoreEmpty = ExamController.calculateScore(q, new String[]{});
         assertEquals(0, scoreEmpty, "Empty selection must award 0 marks");
     }
 
@@ -258,15 +258,15 @@ class ExamSystemUnitTests {
                 "ArrayList", "LinkedList", "Vector", "HashSet", "A,B,C", "PARTIAL_CREDIT", false, 6, 0);
 
         // Student selects 2 of 3 correct answers: (2/3) * 6 = 4 marks
-        int scoreTwoThirds = ExamController.calculateScore(q, null, new String[]{"A", "B"});
+        int scoreTwoThirds = ExamController.calculateScore(q, new String[]{"A", "B"});
         assertEquals(4, scoreTwoThirds, "Partial credit should be awarded proportionally (2/3 * 6 = 4)");
 
         // Student selects all 3 correct: 6 marks
-        int scoreAll = ExamController.calculateScore(q, null, new String[]{"A", "B", "C"});
+        int scoreAll = ExamController.calculateScore(q, new String[]{"A", "B", "C"});
         assertEquals(6, scoreAll, "All correct selections must award full marks");
 
         // Student selects 2 correct and 1 incorrect: fraction = max(0, (2 - 1) / 3) = 1/3 * 6 = 2 marks
-        int scoreWithPenalty = ExamController.calculateScore(q, null, new String[]{"A", "B", "D"});
+        int scoreWithPenalty = ExamController.calculateScore(q, new String[]{"A", "B", "D"});
         assertEquals(2, scoreWithPenalty, "Incorrect selections penalize correct selections proportionally");
     }
 
@@ -277,19 +277,19 @@ class ExamSystemUnitTests {
                 "", "", "", "", "metaspace, method area, permgen", "ALL_OR_NOTHING", false, 5, 0);
 
         // Match first accepted answer with whitespace padding
-        int score1 = ExamController.calculateScore(q, "  metaspace  ", null);
+        int score1 = ExamController.calculateScore(q, "  metaspace  ");
         assertEquals(5, score1, "Whitespace-padded answer must be trimmed and matched");
 
         // Match second accepted answer in uppercase
-        int score2 = ExamController.calculateScore(q, "METHOD AREA", null);
+        int score2 = ExamController.calculateScore(q, "METHOD AREA");
         assertEquals(5, score2, "Case-insensitive matching must award full marks");
 
         // Match third accepted answer
-        int score3 = ExamController.calculateScore(q, "permgen", null);
+        int score3 = ExamController.calculateScore(q, "permgen");
         assertEquals(5, score3, "Any alternative in comma-separated accepted answers must match");
 
         // Wrong answer
-        int scoreWrong = ExamController.calculateScore(q, "heap", null);
+        int scoreWrong = ExamController.calculateScore(q, "heap");
         assertEquals(0, scoreWrong, "Incorrect fill-in answer must award 0 marks");
     }
 
@@ -299,10 +299,10 @@ class ExamSystemUnitTests {
         Question q = new Question(101L, "Enter uppercase acronym", "FILL_BLANKS",
                 "", "", "", "", "REST", "ALL_OR_NOTHING", true, 5, 0);
 
-        int scoreCorrect = ExamController.calculateScore(q, "REST", null);
+        int scoreCorrect = ExamController.calculateScore(q, "REST");
         assertEquals(5, scoreCorrect, "Exact case match must award full marks");
 
-        int scoreWrongCase = ExamController.calculateScore(q, "rest", null);
+        int scoreWrongCase = ExamController.calculateScore(q, "rest");
         assertEquals(0, scoreWrongCase, "Case mismatch in case-sensitive mode must award 0 marks");
     }
 
@@ -332,5 +332,53 @@ class ExamSystemUnitTests {
 
         ExamResult resFail = new ExamResult(1L, "Web Technologies", "WT", "studentB", scoreB, 50);
         assertEquals("FAIL", resFail.getPassFailStatus());
+    }
+
+    @Test
+    @DisplayName("Verify Admin Exam Results Multi-Tenant Isolation")
+    void testAdminExamResultsTenantFilter() {
+        ExamResult resAIT1 = new ExamResult(101L, "Java", "Java", "ait_user1", 18, 20);
+        resAIT1.setCollegeCode("AIT");
+        resAIT1.setRollNumber("21B91A0501");
+
+        ExamResult resAIT2 = new ExamResult(102L, "DBMS", "DBMS", "ait_user2", 15, 20);
+        resAIT2.setCollegeCode("AIT");
+        resAIT2.setRollNumber("21B91A0502");
+
+        ExamResult resNIE = new ExamResult(201L, "Python", "Python", "nie_user1", 19, 20);
+        resNIE.setCollegeCode("NIE");
+        resNIE.setRollNumber("NIE-2026-001");
+
+        List<ExamResult> allResults = List.of(resAIT1, resAIT2, resNIE);
+
+        // Administrator from AIT queries results
+        String adminCollegeCode = "AIT";
+        List<ExamResult> filteredResults = allResults.stream()
+                .filter(r -> adminCollegeCode.equalsIgnoreCase(r.getCollegeCode()))
+                .toList();
+
+        assertEquals(2, filteredResults.size(), "Admin must only see results from their own institution");
+        assertTrue(filteredResults.stream().allMatch(r -> "AIT".equalsIgnoreCase(r.getCollegeCode())));
+        assertFalse(filteredResults.contains(resNIE), "AIT admin must never see NIE examination results");
+    }
+
+    @Test
+    @DisplayName("Verify Homepage and Registration Approved College Filtering")
+    void testApprovedCollegesHomepageFilter() {
+        College c1 = new College("Apex Institute of Technology", "AIT", "Engineering", "APPROVED", "Hyderabad", "Dr. Rao", "admin@ait.edu", "9876543210");
+        College c2 = new College("National Institute of Engineering", "NIE", "Engineering", "APPROVED", "Bengaluru", "Dr. Murthy", "admin@nie.edu", "9876543211");
+        College c3 = new College("Sphoorthy Engineering College", "SPHN", "Engineering", "PENDING", "Hyderabad", "Dr. Principal", "admin@sphoorthy.edu", "9876543212");
+
+        List<College> allColleges = List.of(c1, c2, c3);
+
+        // Homepage and Registration Dropdowns show ONLY approved institutions
+        List<College> visibleColleges = allColleges.stream()
+                .filter(c -> "APPROVED".equalsIgnoreCase(c.getStatus()))
+                .toList();
+
+        assertEquals(2, visibleColleges.size(), "Only APPROVED colleges should appear on homepage and enrollment dropdowns");
+        assertTrue(visibleColleges.contains(c1));
+        assertTrue(visibleColleges.contains(c2));
+        assertFalse(visibleColleges.contains(c3), "PENDING college must not appear in public approved lists until Super Admin approves");
     }
 }

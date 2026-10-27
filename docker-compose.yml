@@ -22,3 +22,4 @@ services:
 volumes:
   collegeconnect_data:
     driver: local
+

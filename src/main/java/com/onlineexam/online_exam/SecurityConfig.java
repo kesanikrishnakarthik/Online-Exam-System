@@ -30,7 +30,7 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/", "/login", "/register-college", "/register-student", "/register-faculty",
+                    "/", "/login", "/logout", "/register-college", "/register-student", "/register-faculty",
                     "/forgot-password", "/css/**", "/js/**", "/images/**", "/h2-console/**", "/api/firebase-config"
                 ).permitAll()
                 .requestMatchers("/platform/**").hasRole("PLATFORM_ADMIN")
@@ -61,12 +61,21 @@ public class SecurityConfig {
                         response.sendRedirect("/dashboard");
                     }
                 })
-                .failureUrl("/login?error")
+                .failureHandler((request, response, exception) -> {
+                    if (exception instanceof org.springframework.security.authentication.DisabledException) {
+                        response.sendRedirect("/login?disabled=true");
+                    } else {
+                        response.sendRedirect("/login?error=true");
+                    }
+                })
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             );
 

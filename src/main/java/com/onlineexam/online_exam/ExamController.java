@@ -256,6 +256,14 @@ public class ExamController {
      * 2. Multiple-Select Checkboxes (All-or-Nothing or Partial Credit)
      * 3. Fill-in-the-Blanks (Trimmed, Case-Insensitive, Multi-accepted answers)
      */
+    public static int calculateScore(Question question, String textAnswer) {
+        return calculateScore(question, textAnswer, null);
+    }
+
+    public static int calculateScore(Question question, String[] multiAnswers) {
+        return calculateScore(question, null, multiAnswers);
+    }
+
     public static int calculateScore(Question question, String textAnswer, String[] multiAnswers) {
         if (question == null) return 0;
         String type = question.getQuestionType();
@@ -353,3 +361,4 @@ public class ExamController {
         return ResponseEntity.ok(response);
     }
 }
+

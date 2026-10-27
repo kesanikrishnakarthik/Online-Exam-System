@@ -192,11 +192,13 @@
 <body>
 <header>
     <h2>Online Exam System</h2>
-    <nav>
+    <nav style="display: flex; align-items: center; gap: 18px;">
         <a href="/exams">Exams</a>
         <a href="/results">My Results</a>
         <a href="/profile">Profile</a>
-        <a href="/login?logout" style="color: #fca5a5;">Logout</a>
+        <form th:action="@{/logout}" method="post" style="display:inline; margin: 0; padding: 0;">
+            <button type="submit" style="background: none; border: none; color: #fca5a5; font-weight: 600; font-size: 14px; cursor: pointer; padding: 0;">Logout</button>
+        </form>
     </nav>
 </header>
 

@@ -40,8 +40,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserAccount account = userOpt.orElseThrow(() ->
                 new UsernameNotFoundException("No active institutional account found for: " + trimmed));
 
-        if ("PENDING_APPROVAL".equalsIgnoreCase(account.getStatus())) {
-            throw new DisabledException("Your account is pending approval by your college administrator.");
+        if ("PENDING".equalsIgnoreCase(account.getStatus()) || "PENDING_APPROVAL".equalsIgnoreCase(account.getStatus())) {
+            throw new DisabledException("Your account is pending administrative approval.");
+        }
+
+        if ("REJECTED".equalsIgnoreCase(account.getStatus())) {
+            throw new DisabledException("Your account registration application was not approved by administration.");
         }
 
         if ("SUSPENDED".equalsIgnoreCase(account.getStatus())) {

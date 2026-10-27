@@ -37,6 +37,8 @@ public class AdminController {
         if (authentication == null) return "AIT";
         return userAccountRepository.findByUsername(authentication.getName())
                 .map(UserAccount::getCollegeCode)
+                .map(String::trim)
+                .map(String::toUpperCase)
                 .orElse("AIT");
     }
 
@@ -46,11 +48,19 @@ public class AdminController {
         College college = collegeRepository.findByCode(collegeCode).orElse(null);
 
         String collegeName = (college != null) ? college.getName() : "College of Technology";
-        List<Exam> exams = examRepository.findByCollegeCode(collegeCode);
-        List<ExamResult> results = examResultRepository.findByCollegeCode(collegeCode);
+        List<Exam> exams = examRepository.findAll().stream()
+                .filter(e -> collegeCode.equalsIgnoreCase(e.getCollegeCode()))
+                .toList();
+        List<ExamResult> results = examResultRepository.findAll().stream()
+                .filter(r -> collegeCode.equalsIgnoreCase(r.getCollegeCode()))
+                .toList();
         
-        List<UserAccount> students = userAccountRepository.findByCollegeCodeAndRole(collegeCode, "ROLE_STUDENT");
-        List<UserAccount> facultyList = userAccountRepository.findByCollegeCodeAndRole(collegeCode, "ROLE_FACULTY");
+        List<UserAccount> students = userAccountRepository.findAll().stream()
+                .filter(u -> collegeCode.equalsIgnoreCase(u.getCollegeCode()) && "ROLE_STUDENT".equalsIgnoreCase(u.getRole()))
+                .toList();
+        List<UserAccount> facultyList = userAccountRepository.findAll().stream()
+                .filter(u -> collegeCode.equalsIgnoreCase(u.getCollegeCode()) && "ROLE_FACULTY".equalsIgnoreCase(u.getRole()))
+                .toList();
 
         long pendingFacultyCount = facultyList.stream().filter(f -> "PENDING".equalsIgnoreCase(f.getStatus())).count();
 
@@ -71,6 +81,46 @@ public class AdminController {
         model.addAttribute("facultyList", facultyList);
 
         return "admin-dashboard";
+    }
+
+    @GetMapping("/admin/results")
+    public String adminResults(
+            @RequestParam(required = false) String subject,
+            @RequestParam(required = false) String student,
+            Authentication authentication,
+            Model model) {
+
+        String collegeCode = getAdminCollegeCode(authentication);
+        College college = collegeRepository.findByCode(collegeCode).orElse(null);
+        String collegeName = (college != null) ? college.getName() : "College of Technology";
+
+        List<ExamResult> results = examResultRepository.findAll().stream()
+                .filter(r -> collegeCode.equalsIgnoreCase(r.getCollegeCode()))
+                .toList();
+
+        if (subject != null && !subject.isBlank()) {
+            String subFilter = subject.trim().toLowerCase();
+            results = results.stream()
+                    .filter(r -> r.getSubject() != null && r.getSubject().toLowerCase().contains(subFilter))
+                    .toList();
+        }
+
+        if (student != null && !student.isBlank()) {
+            String stuFilter = student.trim().toLowerCase();
+            results = results.stream()
+                    .filter(r -> (r.getStudentUsername() != null && r.getStudentUsername().toLowerCase().contains(stuFilter))
+                            || (r.getRollNumber() != null && r.getRollNumber().toLowerCase().contains(stuFilter)))
+                    .toList();
+        }
+
+        model.addAttribute("college", college);
+        model.addAttribute("collegeName", collegeName);
+        model.addAttribute("collegeCode", collegeCode);
+        model.addAttribute("results", results);
+        model.addAttribute("selectedSubject", subject);
+        model.addAttribute("selectedStudent", student);
+
+        return "admin-results";
     }
 
     @PostMapping("/admin/faculty/{id}/approve")
