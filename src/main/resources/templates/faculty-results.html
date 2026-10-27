@@ -27,16 +27,21 @@
         header {
             background: #1e3a8a;
             color: white;
-            padding: 20px 7%;
+            padding: 18px 7%;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         header a {
-            color: white;
+            color: #94a3b8;
             text-decoration: none;
             font-weight: 600;
+            font-size: 14px;
+        }
+
+        header a:hover {
+            color: white;
         }
 
         main {
@@ -65,7 +70,19 @@
 
         h1 {
             color: #1e3a8a;
-            font-size: 24px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .college-badge {
+            background: #e0e7ff;
+            color: #3730a3;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-family: monospace;
         }
 
         .filter-form {
@@ -76,6 +93,7 @@
             background: #f8fafc;
             padding: 16px;
             border-radius: 10px;
+            border: 1px solid #e2e8f0;
         }
 
         .filter-form input {
@@ -119,6 +137,7 @@
             padding: 14px 16px;
             border-bottom: 1px solid #e2e8f0;
             text-align: left;
+            vertical-align: middle;
         }
 
         th {
@@ -156,15 +175,20 @@
     <div class="card">
         <div class="header-bar">
             <div>
-                <h1>College Examination Results & Performance</h1>
-                <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Review student marks, attempt numbers, and security violation audit records.</p>
+                <h1>
+                    <span>Department Examination Results</span>
+                    <span class="college-badge" th:text="${collegeCode}">AIT</span>
+                </h1>
+                <p style="color: #64748b; font-size: 14px; margin-top: 4px;">
+                    <span th:text="${collegeName}">Apex Institute of Technology</span> • Multi-tenant candidate evaluation records
+                </p>
             </div>
             <a href="/faculty/results/export" class="btn btn-export">📥 Export Results (CSV)</a>
         </div>
 
         <form class="filter-form" action="/faculty/results" method="get">
             <input type="text" name="subject" placeholder="Filter by Subject (e.g. Java)" th:value="${selectedSubject}">
-            <input type="text" name="student" placeholder="Search Student Username" th:value="${selectedStudent}">
+            <input type="text" name="student" placeholder="Search Roll No or Username" th:value="${selectedStudent}">
             <button type="submit" class="btn btn-primary">Filter Results</button>
             <a href="/faculty/results" class="btn" style="background: #e2e8f0; color: #334155;">Reset</a>
         </form>
@@ -177,7 +201,7 @@
         <table th:unless="${#lists.isEmpty(results)}">
             <thead>
                 <tr>
-                    <th>Student ID</th>
+                    <th>Candidate</th>
                     <th>Exam Title</th>
                     <th>Subject</th>
                     <th>Score</th>
@@ -189,7 +213,10 @@
             </thead>
             <tbody>
                 <tr th:each="r : ${results}">
-                    <td><strong th:text="${r.studentUsername}">user</strong></td>
+                    <td>
+                        <strong th:text="${r.studentUsername}">user</strong>
+                        <div th:if="${r.rollNumber != null}" style="font-size: 11px; color: #64748b;" th:text="'Roll: ' + ${r.rollNumber}">Roll: 21B91A0501</div>
+                    </td>
                     <td th:text="${r.examTitle}">Java Programming</td>
                     <td th:text="${r.subject}">Java</td>
                     <td>
@@ -200,8 +227,8 @@
                         <span class="badge-attempt" th:text="'Attempt ' + ${r.attemptNumber}">Attempt 1</span>
                     </td>
                     <td>
-                        <span th:if="${r.violationCount > 0}" style="color: #dc2626; font-weight: 700;" th:text="${r.violationCount} + ' Violation(s)'">1 Alert</span>
-                        <span th:if="${r.violationCount == 0}" style="color: #16a34a;">None</span>
+                        <span th:if="${r.violationCount > 0}" style="color: #dc2626; font-weight: 700;" th:text="${r.violationCount} + ' Strike(s)'">1 Strike</span>
+                        <span th:if="${r.violationCount == 0}" style="color: #16a34a; font-weight: 600;">Verified (0)</span>
                     </td>
                     <td th:text="${r.submissionReason}">NORMAL</td>
                 </tr>

@@ -67,9 +67,7 @@ public class AdminController {
     @GetMapping("/admin/audit-logs")
     public String auditLogs(Authentication authentication, Model model) {
         String collegeCode = getAdminCollegeCode(authentication);
-        List<ExamAttempt> attempts = examAttemptRepository.findAll().stream()
-                .filter(a -> collegeCode.equalsIgnoreCase(a.getCollegeCode()))
-                .toList();
+        List<ExamAttempt> attempts = examAttemptRepository.findByCollegeCodeOrderBySubmissionTimeDesc(collegeCode);
 
         model.addAttribute("attempts", attempts);
         model.addAttribute("collegeCode", collegeCode);

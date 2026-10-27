@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Examination - Faculty Panel</title>
+    <title>Create Examination - Faculty Portal</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="/js/firebase-config.js"></script>
 
@@ -26,21 +26,26 @@
         header {
             background: #1e3a8a;
             color: white;
-            padding: 20px 7%;
+            padding: 18px 7%;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         header a {
-            color: white;
+            color: #94a3b8;
             text-decoration: none;
             font-weight: 600;
+            font-size: 14px;
+        }
+
+        header a:hover {
+            color: white;
         }
 
         .container {
-            max-width: 600px;
-            margin: 40px auto;
+            max-width: 680px;
+            margin: 35px auto 50px;
             padding: 35px;
             background: white;
             border-radius: 16px;
@@ -48,43 +53,81 @@
             border: 1px solid #e2e8f0;
         }
 
-        h1 {
+        .header-title {
+            margin-bottom: 24px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 14px;
+        }
+
+        .header-title h1 {
             color: #1e3a8a;
             font-size: 22px;
-            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .header-title p {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
         }
 
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 6px;
+        }
+
+        .full-width {
+            grid-column: span 2;
         }
 
         label {
             display: block;
-            margin-bottom: 7px;
+            margin-bottom: 6px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             color: #334155;
         }
 
-        input {
+        input, select {
             width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #cbd5e1;
+            padding: 11px 13px;
+            border: 1.5px solid #cbd5e1;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 3px;
         }
 
         .btn-submit {
             background: #2563eb;
             color: white;
-            padding: 13px 22px;
+            padding: 14px 22px;
             border: none;
             border-radius: 8px;
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 20px;
             width: 100%;
+            transition: background 0.2s;
         }
 
         .btn-submit:hover {
@@ -95,7 +138,7 @@
             background: #fee2e2;
             color: #991b1b;
             padding: 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             margin-bottom: 20px;
             font-size: 14px;
         }
@@ -103,46 +146,78 @@
 </head>
 
 <body>
-<header>
-    <h2>Faculty Examination Portal</h2>
-    <a href="/faculty/exams">← Back to Exams</a>
-</header>
+    <header>
+        <h2>Faculty Examination Portal</h2>
+        <a href="/faculty/exams">← Back to Exams</a>
+    </header>
 
 <div class="container">
-    <h1>Create College Examination</h1>
+    <div class="header-title">
+        <h1>Create College Examination</h1>
+        <p>Define institutional test parameters, duration, 3-attempt ceiling, and anti-cheating tolerances</p>
+    </div>
 
     <div class="error-box" th:if="${errorMessage}" th:text="${errorMessage}">
         Error message
     </div>
 
     <form th:action="@{/faculty/create-exam}" method="post">
-        <div class="form-group">
-            <label for="title">Examination Title</label>
-            <input type="text" id="title" name="title" placeholder="e.g. Data Structures & Algorithms End-Semester" required>
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label for="title">Examination Title</label>
+                <input type="text" id="title" name="title" placeholder="e.g. Data Structures & Algorithms End-Semester" required>
+            </div>
+
+            <div class="form-group">
+                <label for="subject">Subject Code / Name</label>
+                <input type="text" id="subject" name="subject" placeholder="e.g. CS301 - Data Structures" required>
+            </div>
+
+            <div class="form-group">
+                <label for="durationMinutes">Duration (Minutes)</label>
+                <input type="number" id="durationMinutes" name="durationMinutes" value="30" min="5" max="300" required>
+                <div class="help-text">Countdown timer triggers auto-submission at 00:00</div>
+            </div>
+
+            <div class="form-group">
+                <label for="branchProgram">Degree & Branch Program</label>
+                <input type="text" id="branchProgram" name="branchProgram" value="B.Tech CSE" placeholder="e.g. B.Tech CSE">
+            </div>
+
+            <div class="form-group">
+                <label for="academicYear">Target Academic Year</label>
+                <select id="academicYear" name="academicYear">
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year" selected>3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="semester">Semester</label>
+                <select id="semester" name="semester">
+                    <option value="1st Semester" selected>1st Semester</option>
+                    <option value="2nd Semester">2nd Semester</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="maxAttempts">Max Allowed Attempts (Default: 3)</label>
+                <input type="number" id="maxAttempts" name="maxAttempts" value="3" min="1" max="10" required>
+                <div class="help-text">Strict attempt ceiling per candidate</div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="maxViolations">Security Violation Tolerance (3 Strikes = Auto-Submit)</label>
+                <input type="number" id="maxViolations" name="maxViolations" value="3" min="1" max="10" required>
+                <div class="help-text">Monitors window blur and tab switching during test</div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="subject">Subject Code / Name</label>
-            <input type="text" id="subject" name="subject" placeholder="e.g. DSA, Operating Systems" required>
-        </div>
-
-        <div class="form-group">
-            <label for="durationMinutes">Duration (Minutes)</label>
-            <input type="number" id="durationMinutes" name="durationMinutes" value="30" min="5" max="300" required>
-        </div>
-
-        <div class="form-group">
-            <label for="maxAttempts">Allowed Attempts Per Student (Default 3)</label>
-            <input type="number" id="maxAttempts" name="maxAttempts" value="3" min="1" max="10" required>
-        </div>
-
-        <div class="form-group">
-            <label for="maxViolations">Security Violation Tolerance (Warnings before Auto-Submit)</label>
-            <input type="number" id="maxViolations" name="maxViolations" value="3" min="1" max="10" required>
-        </div>
-
-        <button type="submit" class="btn-submit">Save & Add Questions →</button>
+        <button type="submit" class="btn-submit">Save & Add Questions to Bank →</button>
     </form>
 </div>
 </body>
+
 </html>
