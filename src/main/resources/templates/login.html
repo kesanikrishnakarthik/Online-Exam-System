@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - College Online Examination System</title>
+    <title>Institutional Login - CollegeConnect Examination Platform</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="/js/firebase-config.js"></script>
 
@@ -23,73 +24,128 @@
             justify-content: center;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%);
-            padding: 20px;
+            padding: 30px 15px;
         }
 
         .login-card {
             width: 100%;
-            max-width: 460px;
-            padding: 40px;
+            max-width: 480px;
+            padding: 36px;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
         }
 
-        .college-header {
+        .platform-header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 24px;
         }
 
-        .college-header h1 {
-            color: #1e3a8a;
+        .badge-brand {
+            display: inline-block;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+            border: 1px solid #bfdbfe;
+            text-transform: uppercase;
+        }
+
+        .platform-header h1 {
+            color: #0f172a;
             font-size: 24px;
             font-weight: 800;
         }
 
-        .college-header p {
+        .platform-header p {
             color: #64748b;
-            font-size: 14px;
+            font-size: 13px;
             margin-top: 4px;
         }
 
-        .form-group {
+        .alert-error {
+            padding: 12px;
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            font-size: 13px;
             margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .alert-success {
+            padding: 12px;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .alert-logout {
+            padding: 12px;
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             color: #334155;
         }
 
         input {
             width: 100%;
-            padding: 13px 16px;
-            border: 2px solid #e2e8f0;
+            padding: 12px 14px;
+            border: 1.5px solid #cbd5e1;
             border-radius: 10px;
-            font-size: 15px;
+            font-size: 14px;
             transition: all 0.2s;
+            background: #f8fafc;
         }
 
         input:focus {
             outline: none;
             border-color: #2563eb;
+            background: #ffffff;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .hint-text {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
         }
 
         .submit-btn {
             width: 100%;
-            padding: 14px;
+            padding: 13px;
             border: none;
             border-radius: 10px;
             background: #2563eb;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 8px;
             transition: background 0.2s;
         }
 
@@ -97,37 +153,63 @@
             background: #1d4ed8;
         }
 
-        .demo-credentials-box {
-            margin-top: 25px;
-            padding: 16px;
+        .register-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 18px;
+            font-size: 12px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .register-links a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-links a:hover {
+            text-decoration: underline;
+        }
+
+        .expo-box {
+            margin-top: 18px;
+            padding: 14px;
             background: #f8fafc;
             border-radius: 10px;
             border: 1px solid #e2e8f0;
-            font-size: 13px;
+            font-size: 12px;
         }
 
-        .demo-credentials-box h4 {
+        .expo-box h4 {
             color: #1e3a8a;
-            margin-bottom: 10px;
-            font-size: 13px;
+            margin-bottom: 8px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .cred-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 0;
+            padding: 5px 0;
             border-bottom: 1px solid #f1f5f9;
+        }
+
+        .cred-item:last-child {
+            border-bottom: none;
         }
 
         .fill-btn {
             background: #e0e7ff;
             color: #3730a3;
             border: none;
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 3px 8px;
+            border-radius: 5px;
             font-size: 11px;
             font-weight: 700;
             cursor: pointer;
@@ -137,33 +219,13 @@
             background: #c7d2fe;
         }
 
-        .alert-error {
-            padding: 12px;
-            background: #fee2e2;
-            color: #b91c1c;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .alert-logout {
-            padding: 12px;
-            background: #dcfce7;
-            color: #166534;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
         .home-link {
             display: block;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 16px;
             color: #64748b;
             text-decoration: none;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .home-link:hover {
@@ -174,23 +236,37 @@
 
 <body>
     <div class="login-card">
-        <div class="college-header">
-            <h1>Apex Institute of Technology</h1>
-            <p>Online Examination Portal</p>
+        <div class="platform-header">
+            <span class="badge-brand">Multi-College Portal</span>
+            <h1>CollegeConnect Sign In</h1>
+            <p>Enter your institutional credentials or college roll number</p>
         </div>
 
+        <!-- Success Flash Message (e.g. from registration) -->
+        <div th:if="${successMessage}" class="alert-success" th:text="${successMessage}">
+            Registration successful!
+        </div>
+
+        <!-- Error Flash Message -->
+        <div th:if="${errorMessage}" class="alert-error" th:text="${errorMessage}">
+            Registration error.
+        </div>
+
+        <!-- Spring Security Login Error -->
         <div th:if="${param.error}" class="alert-error">
-            Invalid username or password. Please try again.
+            Invalid institutional ID or password. Please verify your credentials.
         </div>
 
+        <!-- Logout Message -->
         <div th:if="${param.logout}" class="alert-logout">
-            You have successfully logged out.
+            You have been safely signed out.
         </div>
 
         <form th:action="@{/login}" method="post">
             <div class="form-group">
-                <label for="username">Institutional ID / Username</label>
-                <input type="text" id="username" name="username" placeholder="e.g. user, faculty, admin" required autofocus>
+                <label for="username">Institutional ID / Roll No / Username</label>
+                <input type="text" id="username" name="username" placeholder="e.g. user, AIT:21B91A0501, superadmin" required autofocus>
+                <div class="hint-text">Students: use username (e.g. <code>user</code>) or roll format (e.g. <code>AIT:21B91A0501</code>)</div>
             </div>
 
             <div class="form-group">
@@ -201,19 +277,41 @@
             <button type="submit" class="submit-btn">Sign In to Examination Portal</button>
         </form>
 
-        <div class="demo-credentials-box">
-            <h4>Institution Roles & Demo Logins:</h4>
+        <div class="register-links">
+            <a href="/register-student">🎓 Student Sign Up</a>
+            <a href="/register-faculty">👨‍🏫 Faculty Sign Up</a>
+            <a href="/register-college">🏛️ Onboard College</a>
+        </div>
+
+        <div class="expo-box">
+            <h4>
+                <span>Academic Expo Demo Credentials</span>
+                <span style="color: #64748b; font-size: 10px;">Click Fill to test</span>
+            </h4>
+            
             <div class="cred-item">
-                <span>🎓 <strong>Student:</strong> <code>user</code> / <code>Exam@123</code></span>
-                <button type="button" class="fill-btn" onclick="fillCreds('user', 'Exam@123')">Fill</button>
+                <span>🌐 <strong>Super Admin:</strong> <code>superadmin</code></span>
+                <button type="button" class="fill-btn" onclick="fillCreds('superadmin', 'SuperAdmin@123')">Fill</button>
             </div>
             <div class="cred-item">
-                <span>👨‍🏫 <strong>Faculty:</strong> <code>faculty</code> / <code>Faculty@123</code></span>
+                <span>🏛️ <strong>AIT Admin:</strong> <code>admin</code></span>
+                <button type="button" class="fill-btn" onclick="fillCreds('admin', 'Admin@123')">Fill</button>
+            </div>
+            <div class="cred-item">
+                <span>👨‍🏫 <strong>AIT Faculty:</strong> <code>faculty</code></span>
                 <button type="button" class="fill-btn" onclick="fillCreds('faculty', 'Faculty@123')">Fill</button>
             </div>
             <div class="cred-item">
-                <span>🏛️ <strong>Admin:</strong> <code>admin</code> / <code>Admin@123</code></span>
-                <button type="button" class="fill-btn" onclick="fillCreds('admin', 'Admin@123')">Fill</button>
+                <span>🎓 <strong>AIT Student:</strong> <code>user</code> (Roll: 21B91A0501)</span>
+                <button type="button" class="fill-btn" onclick="fillCreds('user', 'Exam@123')">Fill</button>
+            </div>
+            <div class="cred-item">
+                <span>👨‍🏫 <strong>NIE Faculty:</strong> <code>nie_faculty</code></span>
+                <button type="button" class="fill-btn" onclick="fillCreds('nie_faculty', 'Faculty@123')">Fill</button>
+            </div>
+            <div class="cred-item">
+                <span>🎓 <strong>NIE Student:</strong> <code>nie_student</code> (Roll: NIE-2026-001)</span>
+                <button type="button" class="fill-btn" onclick="fillCreds('nie_student', 'Exam@123')">Fill</button>
             </div>
         </div>
 

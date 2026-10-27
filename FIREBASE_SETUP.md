@@ -60,8 +60,9 @@ This document details the exact steps to verify and configure Firebase for the C
 ## 4. Client-Side Script Verification
 
 The frontend automatically includes `/js/firebase-config.js` on all exam templates.
+The Firebase App, Firestore, and Analytics compatibility SDKs are loaded before
+this configuration script. Analytics initializes when supported by the browser.
 When browsing any page, you will notice the live badge in the navigation bar:
 `🟢 Firebase: online-exams-98fa6`
 
 This confirms your project's connection status!
-

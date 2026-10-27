@@ -17,6 +17,7 @@ public class ExamAttempt {
     private String examTitle;
     private String subject;
     private String studentUsername;
+    private String collegeCode = "AIT";
     private String college = "Apex Institute of Technology";
     private int attemptNumber;
     private LocalDateTime startTime;
@@ -37,6 +38,24 @@ public class ExamAttempt {
         this.examTitle = examTitle;
         this.subject = subject;
         this.studentUsername = studentUsername;
+        this.college = college;
+        this.collegeCode = "AIT";
+        this.attemptNumber = attemptNumber;
+        this.startTime = startTime;
+        this.status = status;
+        this.violationCount = 0;
+        this.score = 0;
+        this.totalMarks = 0;
+    }
+
+    public ExamAttempt(Long examId, String examTitle, String subject,
+                       String studentUsername, String collegeCode, String college,
+                       int attemptNumber, LocalDateTime startTime, String status) {
+        this.examId = examId;
+        this.examTitle = examTitle;
+        this.subject = subject;
+        this.studentUsername = studentUsername;
+        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "AIT";
         this.college = college;
         this.attemptNumber = attemptNumber;
         this.startTime = startTime;
@@ -84,6 +103,14 @@ public class ExamAttempt {
 
     public void setStudentUsername(String studentUsername) {
         this.studentUsername = studentUsername;
+    }
+
+    public String getCollegeCode() {
+        return collegeCode;
+    }
+
+    public void setCollegeCode(String collegeCode) {
+        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "AIT";
     }
 
     public String getCollege() {
@@ -163,4 +190,3 @@ public class ExamAttempt {
         return Math.round((score * 100.0 / totalMarks) * 100.0) / 100.0;
     }
 }
-

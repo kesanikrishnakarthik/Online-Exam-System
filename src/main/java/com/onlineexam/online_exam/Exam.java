@@ -16,11 +16,16 @@ public class Exam {
     private String subject;
     private int durationMinutes;
     private int totalMarks;
+    private String collegeCode = "AIT";
     private String college = "Apex Institute of Technology";
     private String department = "Computer Science & Engineering";
+    private String branchProgram = "B.Tech CSE";
+    private String academicYear = "3rd Year";
+    private String semester = "1st Semester";
     private int maxAttempts = 3;
     private int maxViolations = 3;
     private boolean published = true;
+    private String lifecycleStatus = "PUBLISHED"; // DRAFT, PUBLISHED, CLOSED
 
     public Exam() {
     }
@@ -43,6 +48,7 @@ public class Exam {
         this.maxAttempts = maxAttempts;
         this.maxViolations = maxViolations;
         this.published = true;
+        this.lifecycleStatus = "PUBLISHED";
     }
 
     public Long getId() {
@@ -85,6 +91,14 @@ public class Exam {
         this.totalMarks = totalMarks;
     }
 
+    public String getCollegeCode() {
+        return collegeCode;
+    }
+
+    public void setCollegeCode(String collegeCode) {
+        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "";
+    }
+
     public String getCollege() {
         return college;
     }
@@ -99,6 +113,30 @@ public class Exam {
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public String getBranchProgram() {
+        return branchProgram;
+    }
+
+    public void setBranchProgram(String branchProgram) {
+        this.branchProgram = branchProgram;
+    }
+
+    public String getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(String academicYear) {
+        this.academicYear = academicYear;
+    }
+
+    public String getSemester() {
+        return semester;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
     }
 
     public int getMaxAttempts() {
@@ -123,5 +161,13 @@ public class Exam {
 
     public void setPublished(boolean published) {
         this.published = published;
+    }
+
+    public String getLifecycleStatus() {
+        return lifecycleStatus;
+    }
+
+    public void setLifecycleStatus(String lifecycleStatus) {
+        this.lifecycleStatus = lifecycleStatus;
     }
 }

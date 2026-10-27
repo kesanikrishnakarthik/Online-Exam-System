@@ -22,7 +22,7 @@ The project demonstrates a production-grade DevOps Continuous Integration and Co
 * Pulls the latest commits from `https://github.com/kesanikrishnakarthik/Online-Exam-System.git` on branch `main`.
 
 ### Stage 2: Environment Verification
-* Validates that Java 21, Maven, and Docker daemons are installed and operational:
+* Validates that Java 25, Maven, and Docker daemons are installed and operational:
   ```bash
   java -version
   mvn -version
@@ -43,7 +43,7 @@ The project demonstrates a production-grade DevOps Continuous Integration and Co
   ```
 
 ### Stage 5: Build Docker Image
-* Creates the optimized container image `online-exam:1.0` using multi-stage compilation on Eclipse Temurin 21:
+* Creates the optimized container image `online-exam:1.0` using multi-stage compilation on Eclipse Temurin 25:
   ```bash
   docker build -t online-exam:1.0 .
   ```
@@ -63,8 +63,7 @@ The project demonstrates a production-grade DevOps Continuous Integration and Co
 ## 3. Container Optimization (`Dockerfile`)
 
 * **Multi-Stage Build:**
-  * **Build Stage:** `eclipse-temurin:21-jdk` copies source files and compiles the JAR.
-  * **Runtime Stage:** `eclipse-temurin:21-jre` runs only the minimal Java runtime environment, reducing the final image size and attack surface.
+  * **Build Stage:** `eclipse-temurin:25-jdk` copies source files and compiles the JAR.
+  * **Runtime Stage:** `eclipse-temurin:25-jre` runs only the minimal Java runtime environment, reducing the final image size and attack surface.
 * **Security & Cleanliness:**
   * `.dockerignore` prevents `.git`, sensitive environment files (`.env`), and build targets from leaking into the container image.
-

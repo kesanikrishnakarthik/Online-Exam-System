@@ -17,6 +17,8 @@ public class ExamResult {
     private String examTitle;
     private String subject;
     private String studentUsername;
+    private String rollNumber;
+    private String collegeCode = "AIT";
     private String college = "Apex Institute of Technology";
     private int score;
     private int totalMarks;
@@ -39,6 +41,7 @@ public class ExamResult {
         this.submissionTime = LocalDateTime.now();
         this.attemptNumber = 1;
         this.submissionReason = "NORMAL";
+        this.collegeCode = "AIT";
     }
 
     public ExamResult(Long examId, String examTitle, String subject,
@@ -49,6 +52,26 @@ public class ExamResult {
         this.examTitle = examTitle;
         this.subject = subject;
         this.studentUsername = studentUsername;
+        this.college = college;
+        this.collegeCode = "AIT";
+        this.score = score;
+        this.totalMarks = totalMarks;
+        this.attemptNumber = attemptNumber;
+        this.violationCount = violationCount;
+        this.submissionReason = submissionReason;
+        this.submissionTime = LocalDateTime.now();
+    }
+
+    public ExamResult(Long examId, String examTitle, String subject,
+                      String studentUsername, String rollNumber, String collegeCode,
+                      String college, int score, int totalMarks, int attemptNumber,
+                      int violationCount, String submissionReason) {
+        this.examId = examId;
+        this.examTitle = examTitle;
+        this.subject = subject;
+        this.studentUsername = studentUsername;
+        this.rollNumber = rollNumber;
+        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "AIT";
         this.college = college;
         this.score = score;
         this.totalMarks = totalMarks;
@@ -96,6 +119,22 @@ public class ExamResult {
 
     public void setStudentUsername(String studentUsername) {
         this.studentUsername = studentUsername;
+    }
+
+    public String getRollNumber() {
+        return rollNumber;
+    }
+
+    public void setRollNumber(String rollNumber) {
+        this.rollNumber = rollNumber;
+    }
+
+    public String getCollegeCode() {
+        return collegeCode;
+    }
+
+    public void setCollegeCode(String collegeCode) {
+        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "AIT";
     }
 
     public String getCollege() {

@@ -23,16 +23,24 @@ public class ExamController {
     private final QuestionRepository questionRepository;
     private final ExamResultRepository examResultRepository;
     private final ExamAttemptRepository examAttemptRepository;
+    private final UserAccountRepository userAccountRepository;
 
     public ExamController(
             ExamRepository examRepository,
             QuestionRepository questionRepository,
             ExamResultRepository examResultRepository,
-            ExamAttemptRepository examAttemptRepository) {
+            ExamAttemptRepository examAttemptRepository,
+            UserAccountRepository userAccountRepository) {
         this.examRepository = examRepository;
         this.questionRepository = questionRepository;
         this.examResultRepository = examResultRepository;
         this.examAttemptRepository = examAttemptRepository;
+        this.userAccountRepository = userAccountRepository;
+    }
+
+    private UserAccount getAuthenticatedAccount(Authentication authentication) {
+        if (authentication == null) return null;
+        return userAccountRepository.findByUsername(authentication.getName()).orElse(null);
     }
 
     @GetMapping("/exams")
@@ -42,7 +50,12 @@ public class ExamController {
             Model model) {
 
         String studentUsername = (authentication != null) ? authentication.getName() : "user";
-        List<Exam> exams = examRepository.findAll();
+        UserAccount account = getAuthenticatedAccount(authentication);
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
+
+        // Multi-tenant isolation: Only fetch exams for student's own college
+        List<Exam> exams = examRepository.findByCollegeCode(collegeCode);
 
         Map<Long, Integer> attemptsUsedMap = new HashMap<>();
         Map<Long, Integer> remainingAttemptsMap = new HashMap<>();
@@ -59,12 +72,16 @@ public class ExamController {
         }
 
         model.addAttribute("exams", exams);
+        model.addAttribute("collegeName", collegeName);
+        model.addAttribute("collegeCode", collegeCode);
         model.addAttribute("attemptsUsedMap", attemptsUsedMap);
         model.addAttribute("remainingAttemptsMap", remainingAttemptsMap);
         model.addAttribute("canTakeExamMap", canTakeExamMap);
 
         if ("attempts_exhausted".equals(error)) {
             model.addAttribute("errorMessage", "You have used all three attempts for this examination.");
+        } else if ("unauthorized_college".equals(error)) {
+            model.addAttribute("errorMessage", "Access Denied: This examination belongs to another institution.");
         }
 
         return "exams";
@@ -77,9 +94,17 @@ public class ExamController {
             Model model) {
 
         String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        UserAccount account = getAuthenticatedAccount(authentication);
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
 
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new IllegalArgumentException("Exam not found: " + examId));
+
+        // Strict Multi-Tenant Isolation Check
+        if (!collegeCode.equalsIgnoreCase(exam.getCollegeCode())) {
+            return "redirect:/exams?error=unauthorized_college";
+        }
 
         // Strict attempt limit check (Atomic server validation)
         long usedAttempts = examAttemptRepository.countByExamIdAndStudentUsername(examId, studentUsername);
@@ -107,7 +132,8 @@ public class ExamController {
                     exam.getTitle(),
                     exam.getSubject(),
                     studentUsername,
-                    exam.getCollege(),
+                    collegeCode,
+                    collegeName,
                     nextAttemptNum,
                     LocalDateTime.now(),
                     "IN_PROGRESS"
@@ -117,6 +143,7 @@ public class ExamController {
         }
 
         model.addAttribute("exam", exam);
+        model.addAttribute("collegeName", collegeName);
         model.addAttribute("questions", questions);
         model.addAttribute("totalMarks", totalMarks);
         model.addAttribute("attempt", attempt);
@@ -137,6 +164,10 @@ public class ExamController {
             Model model) {
 
         String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        UserAccount account = getAuthenticatedAccount(authentication);
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
+        String rollNumber = (account != null) ? account.getRollNumberOrFacultyId() : "21B91A0501";
 
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new IllegalArgumentException("Exam not found: " + examId));
@@ -182,13 +213,15 @@ public class ExamController {
             examAttemptRepository.save(attempt);
         }
 
-        // Save official result record
+        // Save official result record with collegeCode and rollNumber
         ExamResult result = new ExamResult(
                 exam.getId(),
                 exam.getTitle(),
                 exam.getSubject(),
                 studentUsername,
-                exam.getCollege(),
+                rollNumber,
+                collegeCode,
+                collegeName,
                 score,
                 totalMarks,
                 attemptNumber,
@@ -207,6 +240,7 @@ public class ExamController {
         model.addAttribute("maxAttempts", exam.getMaxAttempts());
         model.addAttribute("submissionReason", submissionReason);
         model.addAttribute("violationCount", violationCount);
+        model.addAttribute("collegeName", collegeName);
 
         return "exam-result";
     }

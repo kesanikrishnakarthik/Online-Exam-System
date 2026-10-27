@@ -1,185 +1,164 @@
-# College Online Examination System with DevOps CI/CD
-**Institution:** Apex Institute of Technology  
-**Department:** Computer Science & Engineering  
-**Capstone DevOps Project:** Online Exam System with Strict Attempt Quotas & Browser Integrity Monitoring  
+# CollegeConnect - Multi-College Online Examination Platform with DevOps CI/CD
+**Academic Level:** B.Tech Computer Science & Engineering Capstone Project  
+**Architecture:** Multi-Tenant Spring Boot 21 + Thymeleaf + Google Firebase + Docker + Jenkins  
 **Firebase Project ID:** `online-exams-98fa6`
 
 ---
 
 ## 1. Project Overview
 
-The **College Online Examination System** is a responsive, secure, enterprise-grade academic testing platform designed for colleges. It provides dedicated role-based portals for **Students**, **Faculty**, and **College Administrators**, with built-in enforcement of a **strict 3-attempt ceiling**, real-time **anti-cheating browser integrity monitoring**, **Cloud Firestore** synchronization, and an end-to-end **Jenkins & Docker CI/CD DevOps pipeline**.
+**CollegeConnect** is an enterprise-grade, multi-tenant online examination and assessment management platform built for universities, autonomous engineering colleges, degree institutions, and polytechnics. 
+
+Unlike single-college demonstrations, CollegeConnect enforces **strict tenant data isolation**: multiple institutions share the same robust backend infrastructure, while keeping their exams, question banks, student attempts, and academic evaluations strictly segregated.
+
+The platform integrates:
+1. **Multi-Tenant Institutional Governance:** Complete self-service college onboarding (`/register-college`) subject to Platform Super Administrator governance (`/platform/dashboard`).
+2. **Institutional Enrollment & Roll-Number Login:** Students enroll under their approved college and log in using either their system handle or their college roll number (e.g., `AIT:21B91A0501`).
+3. **Strict 3-Attempt Examination Ceiling:** Candidates are capped at a maximum of three attempts per test. Quotas are checked atomically server-side prior to exam dispatch.
+4. **Active Anti-Cheating Browser Integrity Monitor:** Proctors test-takers by monitoring window blur, tab switching, and fullscreen exits. Three violations automatically terminate and submit the exam with a logged security infraction.
+5. **Real-Time Cloud Firestore Sync:** Bidirectional telemetry to Firebase project `online-exams-98fa6` for real-time exam timing, student attempt auditing, and cross-platform verification.
+6. **Automated DevOps CI/CD Pipeline:** Fully containerized with a multi-stage Docker build on Eclipse Temurin 21 and orchestrated via a declarative Jenkinsfile pipeline.
 
 ---
 
-## 2. Core Features
+## 2. Role-Based Architecture & Credentials
 
-### 🎓 Student Module
-* **Secure Authentication:** Role-based login and session protection.
-* **Available Examinations:** Subject-wise exam list displaying remaining attempt quotas (`X / 3`).
-* **Attempt Quota Enforcement:** Displays *"You have used all three attempts for this examination"* and disables further test initialization once 3 attempts are reached.
-* **Examination Screen:**
-  * Live countdown timer with automatic submission on expiration.
-  * Interactive question palette (answered items indicated in green).
-  * Answered and remaining question counter.
-* **Integrity Monitoring:**
-  * Detects tab switching, window defocusing, and exiting fullscreen.
-  * Configurable warnings (Violation 1 and Violation 2).
-  * **Automatic exam submission** upon Violation 3.
-* **Results & Performance:** Historical results breakdown with scores, percentages, and attempt logs.
-
-### 👨‍🏫 Faculty Module
-* **Exam Management:** Create exams, set duration, subjects, and attempt quotas.
-* **Question Bank Management:** Add 4-option multiple-choice questions with answer keys and marks.
-* **Student Performance Dashboard:** Filter results by subject or student ID.
-* **CSV Result Export:** Instant download of class performance data (`college-exam-results.csv`).
-* **Security Audit Trail:** Inspect violation logs and submission types.
-
-### 🏛️ College Administrator Module
-* **Institutional Governance:** Overview of college metrics, enrolled students, and faculty.
-* **Department Oversight:** Multi-department and branch configuration.
-* **Attempt Audit Logs:** Complete audit log of every student attempt.
-* **Quota Reset:** Authorized mechanism to reset attempts upon formal student appeal.
-
-### 🔥 Cloud Firebase Integration
-* **Project ID:** `online-exams-98fa6`
-* **Real-time Status Pill:** Visual indicator in navigation header (`🟢 Firebase: online-exams-98fa6`).
-* **Cloud Firestore Sync:** Real-time synchronization of student attempts, final scores, and integrity violations.
-* **Strict Security Rules:** `firestore.rules` enforces college data isolation and prevents students from altering scores or quotas.
+| Role | Tenant / College | Username | Password | Purpose & URL |
+| :--- | :--- | :--- | :--- | :--- |
+| **Platform Super Admin** | Central Platform | `superadmin` | `SuperAdmin@123` | Institutional approvals & network governance (`/platform/dashboard`) |
+| **College Administrator** | Apex Institute (AIT) | `admin` | `Admin@123` | College-level oversight, department stats, audit logs (`/admin/dashboard`) |
+| **Faculty / Examiner** | Apex Institute (AIT) | `faculty` | `Faculty@123` | Exam creation, question bank, CSV grade export (`/faculty/dashboard`) |
+| **Student / Candidate** | Apex Institute (AIT) | `user` or `AIT:21B91A0501` | `Exam@123` | Roll No: `21B91A0501` • Take exams, view scores (`/dashboard`) |
+| **Faculty / Examiner** | National Institute (NIE) | `nie_faculty` | `Faculty@123` | NIE-isolated exams and student grading (`/faculty/dashboard`) |
+| **Student / Candidate** | National Institute (NIE) | `nie_student` or `NIE:NIE-2026-001` | `Exam@123` | Roll No: `NIE-2026-001` • Isolated NIE examinations (`/dashboard`) |
 
 ---
 
-## 3. Demo Credentials
-
-| Role | Username | Password | Dashboard URL |
-| :--- | :--- | :--- | :--- |
-| **Student** | `user` | `Exam@123` | `http://localhost:8081/dashboard` |
-| **Faculty** | `faculty` | `Faculty@123` | `http://localhost:8081/faculty/dashboard` |
-| **College Admin** | `admin` | `Admin@123` | `http://localhost:8081/admin/dashboard` |
-
----
-
-## 4. Architecture Diagram
+## 3. High-Level System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Client["Frontend Layer (Thymeleaf & Web SDK)"]
-        UI["Responsive Web UI\n(Mobile, Tablet, Desktop)"]
-        FS_Badge["Firebase Status Badge\n(online-exams-98fa6)"]
-        Integrity["Browser Integrity Monitor\n(Tab Blur, Fullscreen, Copy Lock)"]
-        Timer["Live Countdown Timer\n(Auto-Submit on 00:00)"]
+    subgraph Clients["Frontend Clients & Proctored Browser"]
+        StudentUI["Student Portal (Exam UI, 3-Attempt Guard, Countdown)"]
+        FacultyUI["Faculty Portal (Exam Authoring, Question Bank, CSV Export)"]
+        AdminUI["College Admin Portal (Audit Trails, Department Stats)"]
+        PlatformUI["Platform Super Admin (College Approvals, Tenant Control)"]
+        Proctor["Browser Integrity Engine (Tab Defocus, 3-Strike Auto Submit)"]
     end
 
-    subgraph Server["Backend Authority (Spring Boot 21)"]
-        Sec["Spring Security\n(Role Verification: Student, Faculty, Admin)"]
-        AttemptMgr["Strict 3-Attempt Manager\n(Atomic Quota Validation)"]
-        Grader["Trusted Server-Side Grader\n(Hidden Answer Keys)"]
-        Audit["Audit Logger & Violation Tracker"]
+    subgraph Backend["Spring Boot 21 Backend (Port 8081)"]
+        Sec["Spring Security 6 (CustomUserDetailsService, Tenant RBAC)"]
+        Onboard["Onboarding Controller (/register-college, /register-student, /register-faculty)"]
+        ExamEngine["Examination Engine (Atomic 3-Attempt Check, Auto-Grading)"]
+        PlatformCtrl["Platform Admin Controller (/platform/dashboard)"]
+        Repo["Spring Data JPA Repositories (WHERE collegeCode = :tenantCode)"]
     end
 
-    subgraph Cloud["Database & Cloud Services"]
-        H2["H2 Relational Database\n(Local Persistence & Tests)"]
-        Firestore["Cloud Firestore\n(Project: online-exams-98fa6)"]
+    subgraph Data["Data & Cloud Layer"]
+        H2["Relational Database (Colleges, Users, Exams, Attempts, Results)"]
+        Firebase["Google Cloud Firestore (online-exams-98fa6)"]
     end
 
-    subgraph DevOps["CI/CD Automation Pipeline"]
-        Git["Git / GitHub Repository"] --> Jenkins["Jenkinsfile Pipeline"]
-        Jenkins --> Maven["Maven Build & Unit Tests"]
-        Maven --> Docker["Docker Image (Eclipse Temurin 21)"]
-        Docker --> Container["Running Container (:8081)"]
+    subgraph DevOps["DevOps CI/CD Automation"]
+        Git["Git Version Control"]
+        Jenkins["Jenkins Declarative Pipeline (Build -> Test -> Docker -> Deploy)"]
+        Docker["Multi-Stage Docker Image (Eclipse Temurin 21)"]
     end
 
-    UI --> Sec
-    UI --> Firestore
-    Sec --> AttemptMgr
-    AttemptMgr --> Grader
-    Grader --> H2
-    Grader --> Firestore
+    Clients --> Sec
+    Proctor --> ExamEngine
+    Sec --> Onboard
+    Sec --> PlatformCtrl
+    Sec --> ExamEngine
+    ExamEngine --> Repo
+    PlatformCtrl --> Repo
+    Repo --> H2
+    ExamEngine -.->|Async Realtime Telemetry| Firebase
+    Git --> Jenkins --> Docker
 ```
 
 ---
 
-## 5. Technology Stack
+## 4. Key Workflows & Demonstration Guide
 
-* **Programming Language:** Java 21 (Eclipse Temurin JDK)
-* **Backend Framework:** Spring Boot, Spring MVC, Spring Data JPA, Spring Security
-* **Frontend:** Thymeleaf 3, HTML5, CSS3, JavaScript (ES6+), Firebase Web SDK
-* **Database:** Cloud Firestore (`online-exams-98fa6`) & H2 In-Memory Database
-* **Build Tool:** Apache Maven 3.9+ (with `mvnw` wrapper)
-* **Testing:** JUnit 5, Mockito
-* **DevOps & Containers:** Docker (Multi-stage build), Jenkins Declarative Pipeline, Git
+### Workflow 1: Institutional Onboarding & Super Admin Approval
+1. Visit `http://localhost:8081/register-college`.
+2. Fill out the application form for a new college (e.g. *St. Xavier's College*, Code: `SXC`).
+3. Notice that the college is created in `PENDING` state and students cannot register until it is approved.
+4. Log in as **Super Admin** (`superadmin` / `SuperAdmin@123`).
+5. Open `/platform/dashboard`, inspect the institution registry, and click **Approve**.
+
+### Workflow 2: Student Enrollment with College Roll Number
+1. Visit `http://localhost:8081/register-student`.
+2. Select your approved college from the dropdown.
+3. Enter your Roll Number (e.g., `21B91A0501`), select department, degree, and semester.
+4. Log in on the login page either using the generated username or directly using `AIT:21B91A0501`.
+
+### Workflow 3: Multi-Tenant Data Isolation in Action
+1. Log in as **AIT Student** (`user` / `Exam@123`).
+2. Observe available exams: only *Apex Institute of Technology* exams appear (Java Programming, Data Structures).
+3. Log out and sign in as **NIE Student** (`nie_student` / `Exam@123`).
+4. Observe available exams: only *National Institute of Engineering* exams appear (Electric Circuits & Systems). **Zero cross-tenant data leakage.**
+
+### Workflow 4: Strict 3-Attempt Limit & Auto-Submission
+1. As a student, start an exam.
+2. The remaining attempts count updates from `1 / 3` to `2 / 3` to `3 / 3`.
+3. Upon consuming 3 attempts, the test initiation button is disabled with the message: *"Maximum attempt limit (3/3) reached"*.
+4. During an exam, simulate anti-cheating by switching tabs or defocusing the window:
+   - Strike 1: Warning modal.
+   - Strike 2: Final warning modal.
+   - Strike 3: Exam is instantly terminated and auto-submitted with status `AUTO_SUBMITTED_VIOLATION`.
 
 ---
 
-## 6. How to Run Locally
+## 5. DevOps CI/CD Pipeline
 
-### Prerequisites
-* Java 21 JDK installed
-* Git installed
-* Docker (optional for containerization)
+The project includes an enterprise-grade CI/CD automation pipeline defined in [Jenkinsfile](file:///c:/Users/kesan/Downloads/online-exam%20(1)/online-exam/Jenkinsfile):
 
-### Step 1: Clone and Navigate
-```bash
-git clone https://github.com/kesanikrishnakarthik/Online-Exam-System.git
-cd Online-Exam-System
+```mermaid
+flowchart LR
+    S1["1. Checkout Source\n(Git scm)"] --> S2["2. Compile & Unit Test\n(mvnw test - 9/9 PASS)"]
+    S2 --> S3["3. Package Artifact\n(mvnw package JAR)"]
+    S3 --> S4["4. Docker Build\n(eclipse-temurin:21)"]
+    S4 --> S5["5. Container Deploy\n(Port 8081 Healthcheck)"]
 ```
 
-### Step 2: Build and Run Automated Tests
+### Local Build & Test Commands:
 ```powershell
-.\mvnw.cmd test
-```
-All 6 domain and security tests will run and pass.
-
-### Step 3: Run the Application
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-### Step 4: Open in Browser
-Open [http://localhost:8081](http://localhost:8081) in your browser.
-Log in using any of the demo accounts listed above.
-
----
-
-## 7. Docker Deployment
-
-### Build the Docker Image
-```bash
-docker build -t online-exam:1.0 .
-```
-
-### Run the Container
-```bash
-docker run -d --name online-exam-container -p 8081:8081 online-exam:1.0
-```
-
-### Inspect Container Logs
-```bash
-docker logs -f online-exam-container
+# From workspace root:
+.\mvnw.cmd test       # Runs all 9 domain, multi-tenant & security tests
+.\mvnw.cmd package    # Compiles and builds production executable JAR
+java -jar online-exam/target/online-exam-0.0.1-SNAPSHOT.jar
 ```
 
 ---
 
-## 8. Jenkins CI/CD Pipeline
+## 6. Academic Project Expo Presentation Script
 
-The included `Jenkinsfile` runs the following automated pipeline:
-1. **Checkout from GitHub:** Checks out the latest branch.
-2. **Environment Verification:** Verifies Java 21, Maven, and Docker versions.
-3. **Run Automated Tests:** Executes all unit and security tests (`mvn test`).
-4. **Publish Test Reports:** Publishes JUnit XML test results.
-5. **Build Application:** Compiles the Spring Boot fat JAR.
-6. **Build Docker Image:** Builds the `online-exam:1.0` multi-stage container.
-7. **Deploy Application:** Stops old containers and starts the updated image on port 8081.
-8. **Health Check:** Confirms container availability.
+Use this script during your final project evaluation or academic expo:
+
+> **Opening Hook (30 seconds):**  
+> *"Good morning, esteemed professors and evaluators. Today, I am presenting **CollegeConnect**, a secure, multi-tenant Online Examination System engineered with a full DevOps CI/CD pipeline.*  
+> *Most academic projects are single-college demos with hardcoded users. In contrast, CollegeConnect was architected from the ground up to serve multiple educational institutions simultaneously on a single shared infrastructure with strict tenant data isolation, server-enforced 3-attempt limits, active browser anti-cheating, and Google Firebase cloud sync."*
+
+> **Architecture & Multi-Tenancy (1 minute):**  
+> *"Our architecture features four distinct tiers of governance: Platform Super Administrators, College Administrators, Faculty, and Students. In our database schema, all exams, questions, and scores are bound to an immutable `collegeCode`. When an AIT student logs in, our Spring Data JPA queries filter by tenant code, ensuring that an engineering student from Apex never sees exams or results from another university."*
+
+> **Integrity & Anti-Cheating (1 minute):**  
+> *"For academic integrity, we implemented two critical safeguards: First, an atomic 3-attempt ceiling enforced server-side before an exam can be launched. Second, a client-side browser proctoring engine that tracks `blur` and `visibilitychange` events. If a candidate attempts to switch tabs or open search engines, they receive two warnings; on the third violation, the system automatically finalizes the exam and marks the record as `AUTO_SUBMITTED_VIOLATION`."*
+
+> **DevOps & Firebase (1 minute):**  
+> *"Finally, from a DevOps perspective, our system is containerized using a multi-stage Dockerfile on Eclipse Temurin 21 and automated via a declarative Jenkins pipeline that runs automated test suites on every commit. We also integrated Google Cloud Firestore for real-time exam telemetry."*
 
 ---
 
-## 9. Comprehensive Documentation Sitemap
+## 7. Anticipated Evaluator Questions & Model Answers
 
-* [ARCHITECTURE.md](file:///c:/Users/kesan/Downloads/online-exam%20(1)/online-exam/ARCHITECTURE.md) - Deep architectural and security design.
-* [FIREBASE_SETUP.md](file:///c:/Users/kesan/Downloads/online-exam%20(1)/online-exam/FIREBASE_SETUP.md) - Firebase Console setup and Firestore activation.
-* [DATABASE_SCHEMA.md](file:///c:/Users/kesan/Downloads/online-exam%20(1)/online-exam/DATABASE_SCHEMA.md) - Relational and Firestore collections schema.
-* [SECURITY.md](file:///c:/Users/kesan/Downloads/online-exam%20(1)/online-exam/SECURITY.md) - Strict attempt quota rules and browser integrity specifications.
-* [DEVOPS_PIPELINE.md](file:///c:/Users/kesan/Downloads/online-exam%20(1)/online-exam/DEVOPS_PIPELINE.md) - Complete Jenkins and Docker deployment guide.
-* [TESTING_GUIDE.md](file:///c:/Users/kesan/Downloads/online-exam%20(1)/online-exam/TESTING_GUIDE.md) - Manual and automated testing checklist.
+**Q1: How do you prevent College A students from accessing College B exams?**  
+*Answer:* Multi-tenancy is enforced at three independent layers: (1) In `SecurityConfig`, the authenticated user's tenant context is extracted; (2) In Spring Data JPA repositories, queries use parameter binding with `WHERE collegeCode = :tenantCode`; (3) In `firestore.rules`, documents validate `request.auth.token.collegeCode == resource.data.collegeCode`.
 
+**Q2: Can a student bypass the 3-attempt limit by refreshing the page or submitting via API?**  
+*Answer:* No. Every attempt is logged in the `ExamAttempt` table. Before returning the exam questions or processing a submission, the backend runs `countByExamIdAndStudentUsername()`. If the count is 3 or more, the request is immediately rejected with HTTP 403 Forbidden.
+
+**Q3: Why did you choose a multi-stage Docker build?**  
+*Answer:* A multi-stage build separates the build environment (Maven + JDK) from the runtime environment (minimal JRE). This reduces the final container image size by over 60%, shrinks the attack surface, and eliminates compiler tools from production containers.

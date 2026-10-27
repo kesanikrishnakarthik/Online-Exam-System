@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Registration - Multi-College Examination Platform</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%);
+            padding: 30px 15px;
+            color: #1e293b;
+        }
+
+        .card-container {
+            width: 100%;
+            max-width: 600px;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+            padding: 40px;
+        }
+
+        .header-box {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .badge-faculty {
+            display: inline-block;
+            background: #fdf2f8;
+            color: #db2777;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            border: 1px solid #fbcfe8;
+        }
+
+        .header-box h1 {
+            color: #0f172a;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .header-box p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .alert-error {
+            padding: 14px 18px;
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 6px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #334155;
+        }
+
+        label span {
+            color: #ef4444;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #db2777;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #be185d;
+        }
+
+        .links-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+
+        .links-row a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .links-row a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+<div class="card-container">
+    <div class="header-box">
+        <span class="badge-faculty">FACULTY REGISTRATION</span>
+        <h1>Faculty & Examiner Onboarding</h1>
+        <p>Register as an instructor to create examinations, manage question banks, and evaluate results</p>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert-error">
+        <span>⚠️</span>
+        <span th:text="${errorMessage}">Validation error occurred.</span>
+    </div>
+
+    <form th:action="@{/register-faculty}" method="post">
+        <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="collegeCode">Institution / College <span>*</span></label>
+                <select id="collegeCode" name="collegeCode" required>
+                    <option value="" disabled selected>-- Select your approved college --</option>
+                    <option th:each="col : ${colleges}" 
+                            th:value="${col.code}" 
+                            th:text="${col.name + ' (' + col.code + ')'}">Apex Institute of Technology (AIT)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="facultyId">Faculty Employee ID <span>*</span></label>
+                <input type="text" id="facultyId" name="facultyId" placeholder="e.g. FAC-101" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">Full Name & Title <span>*</span></label>
+                <input type="text" id="fullName" name="fullName" placeholder="e.g. Dr. Sarah Professor" required>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="email">Institutional Email <span>*</span></label>
+                <input type="email" id="email" name="email" placeholder="faculty@example.edu.in" required>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="department">Academic Department <span>*</span></label>
+                <select id="department" name="department" required>
+                    <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Electronics & Communication">Electronics & Communication</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="password">Account Password <span>*</span></label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Register as College Faculty</button>
+    </form>
+
+    <div class="links-row">
+        <a href="/login">Already registered? Log in here</a>
+        <a href="/">Return to Homepage</a>
+    </div>
+</div>
+</body>
+</html>

@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>College Online Examination System - DevOps Academic Project</title>
+    <title>CollegeConnect - Multi-College Online Examination Platform | DevOps CI/CD</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="/js/firebase-config.js"></script>
 
@@ -25,10 +26,27 @@
         header {
             background: #0f172a;
             color: white;
-            padding: 20px 8%;
+            padding: 18px 8%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-badge {
+            background: #2563eb;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
         }
 
         header h2 {
@@ -36,28 +54,47 @@
             font-weight: 800;
         }
 
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
         nav a {
-            color: white;
+            color: #cbd5e1;
             text-decoration: none;
-            margin-left: 20px;
             font-size: 14px;
             font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        .btn-nav-outline {
+            border: 1px solid #3b82f6;
+            color: #60a5fa;
+            padding: 7px 14px;
+            border-radius: 8px;
         }
 
         .btn-nav-login {
             background: #2563eb;
+            color: white !important;
             padding: 8px 18px;
             border-radius: 8px;
+            font-weight: 700;
         }
 
         .hero {
             text-align: center;
-            padding: 90px 20px;
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #312e81 100%);
+            padding: 85px 20px 75px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%);
             color: white;
         }
 
-        .college-tag {
+        .tag-pill {
             display: inline-block;
             background: rgba(255, 255, 255, 0.15);
             padding: 6px 16px;
@@ -66,32 +103,41 @@
             font-weight: 600;
             margin-bottom: 20px;
             letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .hero h1 {
-            font-size: 42px;
+            font-size: 44px;
             font-weight: 800;
             margin-bottom: 16px;
             line-height: 1.2;
+            letter-spacing: -0.5px;
         }
 
         .hero p {
             font-size: 18px;
-            max-width: 720px;
+            max-width: 800px;
             margin: 0 auto 35px;
             color: #cbd5e1;
             line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
         .hero-btn {
             display: inline-block;
             background: #2563eb;
             color: white;
-            padding: 15px 34px;
+            padding: 14px 28px;
             border-radius: 10px;
             text-decoration: none;
-            font-weight: 800;
-            font-size: 16px;
+            font-weight: 700;
+            font-size: 15px;
             box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
             transition: all 0.2s;
         }
@@ -101,9 +147,62 @@
             transform: translateY(-2px);
         }
 
+        .hero-btn-secondary {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.2s;
+        }
+
+        .hero-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .colleges-banner {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 24px 8%;
+            text-align: center;
+        }
+
+        .colleges-banner h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+
+        .college-pills {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .college-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+        }
+
         .features-section {
             padding: 70px 8%;
-            max-width: 1200px;
+            max-width: 1240px;
             margin: auto;
         }
 
@@ -114,21 +213,22 @@
 
         .section-header h2 {
             font-size: 28px;
-            color: #1e3a8a;
+            color: #0f172a;
             margin-bottom: 8px;
+            font-weight: 800;
         }
 
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 25px;
+            gap: 24px;
         }
 
         .feature-card {
             background: white;
-            padding: 32px 26px;
+            padding: 30px 24px;
             border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
             border: 1px solid #e2e8f0;
             text-align: left;
             transition: transform 0.2s;
@@ -147,6 +247,7 @@
             font-size: 18px;
             color: #1e3a8a;
             margin-bottom: 10px;
+            font-weight: 700;
         }
 
         .feature-card p {
@@ -155,9 +256,56 @@
             line-height: 1.6;
         }
 
+        .quick-onboarding-section {
+            background: #eff6ff;
+            border-top: 1px solid #bfdbfe;
+            border-bottom: 1px solid #bfdbfe;
+            padding: 50px 8%;
+            text-align: center;
+        }
+
+        .onboarding-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 30px auto 0;
+        }
+
+        .onboard-box {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #dbeafe;
+            text-align: center;
+        }
+
+        .onboard-box h4 {
+            font-size: 16px;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .onboard-box p {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+
+        .btn-register {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
         footer {
             text-align: center;
-            padding: 30px;
+            padding: 35px 20px;
             background: #0f172a;
             color: #94a3b8;
             font-size: 14px;
@@ -167,58 +315,125 @@
 
 <body>
 <header>
-    <h2>Apex Institute of Technology</h2>
+    <div class="header-brand">
+        <h2>CollegeConnect</h2>
+        <span class="brand-badge">Multi-Tenant</span>
+    </div>
     <nav>
-        <a href="#features">Features</a>
-        <a href="/login" class="btn-nav-login">Sign In</a>
+        <a href="#features">Architecture</a>
+        <a href="#onboarding">Join Platform</a>
+        <a href="/register-college" class="btn-nav-outline">Onboard College</a>
+        <a href="/login" class="btn-nav-login">Sign In →</a>
     </nav>
 </header>
 
 <div class="hero">
-    <div class="college-tag">Academic Year 2026 • Examination Portal</div>
-    <h1>College Online Examination System</h1>
+    <div class="tag-pill">Academic Year 2026 • DevOps Capstone Project</div>
+    <h1>Multi-College Online Examination Platform</h1>
     <p>
-        A full-stack, secure, multi-role online examination platform featuring a strict 3-attempt quota policy, real-time browser integrity monitoring, Firebase data sync, and a complete DevOps CI/CD pipeline.
+        An enterprise-grade, multi-tenant examination engine serving engineering colleges, autonomous universities, and degree institutions with strict data isolation, 3-attempt candidate policy, anti-cheating browser integrity, and automated CI/CD container delivery.
     </p>
-    <a href="/login" class="hero-btn">Access Examination Portal →</a>
+    <div class="hero-actions">
+        <a href="/login" class="hero-btn">Access Examination Portal →</a>
+        <a href="/register-student" class="hero-btn-secondary">Candidate Student Sign Up</a>
+        <a href="/register-college" class="hero-btn-secondary">Onboard New Institution</a>
+    </div>
+</div>
+
+<div class="colleges-banner">
+    <h4>Approved Educational Institution Tenants</h4>
+    <div class="college-pills">
+        <div class="college-chip">
+            <span>🏛️</span>
+            <span>Apex Institute of Technology <code>(AIT)</code></span>
+        </div>
+        <div class="college-chip">
+            <span>🎓</span>
+            <span>National Institute of Engineering <code>(NIE)</code></span>
+        </div>
+        <div class="college-chip">
+            <span>⏳</span>
+            <span>St. Xavier's College <code>(SXC)</code> - <em>Pending Approval</em></span>
+        </div>
+    </div>
 </div>
 
 <div class="features-section" id="features">
     <div class="section-header">
-        <h2>Institutional Platform Architecture</h2>
-        <p style="color: #64748b;">Built with enterprise-grade standards for students, faculty, and administrators.</p>
+        <h2>Core Technical Architecture</h2>
+        <p style="color: #64748b;">Designed to satisfy strict academic compliance, security isolation, and DevOps operational standards.</p>
     </div>
 
     <div class="features-grid">
         <div class="feature-card">
+            <div class="feature-icon">🏢</div>
+            <h3>Multi-Tenant Data Isolation</h3>
+            <p>Partitioned by institutional <code>collegeCode</code>. Students and faculty of College A are strictly segregated from College B via JPA repository isolation and Firestore security rules.</p>
+        </div>
+
+        <div class="feature-card">
             <div class="feature-icon">🛡️</div>
-            <h3>Strict 3-Attempt Limit</h3>
-            <p>Every student is strictly limited to three examination attempts per test. Quotas are validated server-side with atomic transaction checks to prevent duplicate submissions.</p>
+            <h3>Strict 3-Attempt Exam Policy</h3>
+            <p>Every student is strictly capped at three attempts per exam. Quotas are validated server-side using atomic repository queries before exam initiation to block duplicate attempts.</p>
         </div>
 
         <div class="feature-card">
             <div class="feature-icon">👁️</div>
-            <h3>Browser Integrity Monitoring</h3>
-            <p>Monitors tab switching, window defocusing, and fullscreen exit. Features configurable warning modals and automatic examination finalization upon reaching 3 violations.</p>
+            <h3>Anti-Cheating Integrity Monitor</h3>
+            <p>Active JavaScript proctoring tracks tab switching, window defocusing, and fullscreen exits. Strikes trigger immediate student warnings and auto-finalize exams upon 3 violations.</p>
         </div>
 
         <div class="feature-card">
             <div class="feature-icon">🔥</div>
-            <h3>Cloud Firestore Integration</h3>
-            <p>Integrated with Google Firebase project <code>online-exams-98fa6</code> for real-time document synchronization, attempt auditing, and secure role-based rules.</p>
+            <h3>Cloud Firestore Live Sync</h3>
+            <p>Integrated with Google Firebase project <code>online-exams-98fa6</code> for real-time document synchronization, live exam timers, attempt auditing, and cross-platform verification.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Faculty Question Bank & CSV Export</h3>
+            <p>Intuitive exam authoring, automated grading, instant candidate result computation, and institutional CSV score export segregated by college department.</p>
         </div>
 
         <div class="feature-card">
             <div class="feature-icon">🚀</div>
-            <h3>DevOps CI/CD Automation</h3>
-            <p>Complete deployment pipeline managed via Git version control, Jenkinsfile automation, and multi-stage Docker containerization on Eclipse Temurin 21.</p>
+            <h3>Automated DevOps CI/CD</h3>
+            <p>Engineered with Eclipse Temurin 25, multi-stage Docker containerization, declarative Jenkinsfile CI/CD pipelines, and zero-fork JUnit surefire test suites.</p>
+        </div>
+    </div>
+</div>
+
+<div class="quick-onboarding-section" id="onboarding">
+    <h2 style="font-size: 26px; color: #0f172a; margin-bottom: 8px; font-weight: 800;">Get Started on CollegeConnect</h2>
+    <p style="color: #64748b; font-size: 15px;">Choose your institutional role to register or sign in</p>
+
+    <div class="onboarding-grid">
+        <div class="onboard-box">
+            <div style="font-size: 28px; margin-bottom: 10px;">🏛️</div>
+            <h4>Colleges & Universities</h4>
+            <p>Apply to onboard your institution and manage departmental exams.</p>
+            <a href="/register-college" class="btn-register">Register Institution</a>
+        </div>
+
+        <div class="onboard-box">
+            <div style="font-size: 28px; margin-bottom: 10px;">👨‍🏫</div>
+            <h4>Faculty & Examiners</h4>
+            <p>Join your college department to create exams and review scores.</p>
+            <a href="/register-faculty" class="btn-register">Register as Faculty</a>
+        </div>
+
+        <div class="onboard-box">
+            <div style="font-size: 28px; margin-bottom: 10px;">🎓</div>
+            <h4>Students & Candidates</h4>
+            <p>Enroll with your college roll number to take exams and view grades.</p>
+            <a href="/register-student" class="btn-register">Enroll as Student</a>
         </div>
     </div>
 </div>
 
 <footer>
-    <p>© 2026 Apex Institute of Technology • Department of Computer Science & Engineering</p>
-    <p style="margin-top: 6px; font-size: 12px; color: #64748b;">DevOps Capstone Project • Spring Boot & Firebase</p>
+    <p>© 2026 CollegeConnect Multi-College Examination Platform</p>
+    <p style="margin-top: 6px; font-size: 12px; color: #64748b;">DevOps Capstone Project • Java 21 Spring Boot • Google Firebase • Docker • Jenkins</p>
 </footer>
 </body>
 </html>

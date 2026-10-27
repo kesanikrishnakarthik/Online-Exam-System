@@ -17,7 +17,7 @@ The application balances trusted server-side academic governance with modern rea
    * Evaluators and faculty can inspect live attempt activity from anywhere.
 3. **Decoupled Three-Tier Architecture:**
    * **Presentation Tier:** Responsive Thymeleaf views, HTML5, CSS3, Firebase Web SDK, and JavaScript anti-cheating listeners.
-   * **Application / Logic Tier:** Spring Boot 21, Spring Security with BCrypt hashing, atomic attempt validators, and transaction handlers.
+   * **Application / Logic Tier:** Spring Boot on Java 25, Spring Security with BCrypt hashing, atomic attempt validators, and transaction handlers.
    * **Persistence Tier:** Cloud Firestore (`online-exams-98fa6`) for cloud documents + H2 Database for local relational integrity and automated tests.
 
 ---
@@ -74,4 +74,3 @@ Student Client                   Spring Boot Backend               Database / Fi
   * **Violation 1:** Displays security warning modal; logs incident to `/api/exam/{id}/violation` and Cloud Firestore.
   * **Violation 2:** Displays final warning modal; logs incident.
   * **Violation 3:** Backend forces immediate examination auto-submission (`submissionReason = "VIOLATION_LIMIT"`). Result is computed based on answered questions and locked.
-

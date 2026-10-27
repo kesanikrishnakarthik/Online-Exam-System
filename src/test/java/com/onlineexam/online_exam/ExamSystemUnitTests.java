@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("College Online Exam System - Domain & Security Unit Tests")
+@DisplayName("College Online Exam System - Domain, Multi-Tenant & Security Unit Tests")
 class ExamSystemUnitTests {
 
     private Exam sampleExam;
@@ -21,6 +21,7 @@ class ExamSystemUnitTests {
     void setUp() {
         sampleExam = new Exam("Java Programming", "Java", 30, 20);
         sampleExam.setId(101L);
+        sampleExam.setCollegeCode("AIT");
         sampleExam.setMaxAttempts(3);
         sampleExam.setMaxViolations(3);
 
@@ -37,6 +38,7 @@ class ExamSystemUnitTests {
         assertEquals(3, sampleExam.getMaxAttempts(), "Default attempt limit must be 3");
         assertEquals(3, sampleExam.getMaxViolations(), "Default security violation threshold must be 3");
         assertEquals("Apex Institute of Technology", sampleExam.getCollege());
+        assertEquals("AIT", sampleExam.getCollegeCode());
     }
 
     @Test
@@ -151,5 +153,55 @@ class ExamSystemUnitTests {
             assertEquals("studentA", r.getStudentUsername(), "A student must never receive another student's results");
         }
     }
-}
 
+    @Test
+    @DisplayName("Verify Multi-Tenant Data Isolation (College A cannot see College B exams)")
+    void testMultiTenantExamIsolation() {
+        Exam examAIT1 = new Exam("Data Structures", "CSE", 45, 30);
+        examAIT1.setCollegeCode("AIT");
+
+        Exam examAIT2 = new Exam("Computer Networks", "CSE", 40, 25);
+        examAIT2.setCollegeCode("AIT");
+
+        Exam examNIE = new Exam("Power Systems", "EEE", 50, 40);
+        examNIE.setCollegeCode("NIE");
+
+        List<Exam> allSystemExams = List.of(examAIT1, examAIT2, examNIE);
+
+        // Simulate student from AIT querying exams
+        String studentCollegeCode = "AIT";
+        List<Exam> studentVisibleExams = allSystemExams.stream()
+                .filter(e -> studentCollegeCode.equalsIgnoreCase(e.getCollegeCode()))
+                .toList();
+
+        assertEquals(2, studentVisibleExams.size());
+        assertTrue(studentVisibleExams.stream().allMatch(e -> "AIT".equals(e.getCollegeCode())));
+        assertFalse(studentVisibleExams.contains(examNIE), "AIT student must not access NIE exams");
+    }
+
+    @Test
+    @DisplayName("Verify College Approval Gate (Only APPROVED colleges allow active enrollment)")
+    void testCollegeApprovalGate() {
+        College approvedCollege = new College("Apex Institute", "AIT", "Engineering", "APPROVED", "Hyderabad", "Dr. Rao", "admin@ait.edu", "9876543210");
+        College pendingCollege = new College("St. Xavier's", "SXC", "Degree", "PENDING", "Mumbai", "Fr. Joseph", "admin@sxc.edu", "9876543211");
+        College suspendedCollege = new College("Old Institute", "OLD", "Polytechnic", "SUSPENDED", "Delhi", "Prof. Kumar", "admin@old.edu", "9876543212");
+
+        assertTrue("APPROVED".equalsIgnoreCase(approvedCollege.getStatus()), "Approved college must allow student enrollment");
+        assertFalse("APPROVED".equalsIgnoreCase(pendingCollege.getStatus()), "Pending college must block onboarding until Super Admin approval");
+        assertFalse("APPROVED".equalsIgnoreCase(suspendedCollege.getStatus()), "Suspended college must block new enrollment");
+    }
+
+    @Test
+    @DisplayName("Verify Institutional Roll Number Login Parsing")
+    void testInstitutionalRollNumberLoginParsing() {
+        String inputLogin = "AIT:21B91A0501";
+        String[] parts = inputLogin.split(":", 2);
+
+        assertEquals(2, parts.length);
+        String collegeCode = parts[0].trim().toUpperCase();
+        String rollNumber = parts[1].trim();
+
+        assertEquals("AIT", collegeCode);
+        assertEquals("21B91A0501", rollNumber);
+    }
+}

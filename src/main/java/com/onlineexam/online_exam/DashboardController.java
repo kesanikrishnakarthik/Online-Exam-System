@@ -12,24 +12,33 @@ public class DashboardController {
     private final ExamRepository examRepository;
     private final ExamResultRepository examResultRepository;
     private final ExamAttemptRepository examAttemptRepository;
+    private final UserAccountRepository userAccountRepository;
 
     public DashboardController(
             ExamRepository examRepository,
             ExamResultRepository examResultRepository,
-            ExamAttemptRepository examAttemptRepository) {
+            ExamAttemptRepository examAttemptRepository,
+            UserAccountRepository userAccountRepository) {
         this.examRepository = examRepository;
         this.examResultRepository = examResultRepository;
         this.examAttemptRepository = examAttemptRepository;
+        this.userAccountRepository = userAccountRepository;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
         String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        UserAccount student = userAccountRepository.findByUsername(studentUsername).orElse(null);
 
-        List<Exam> exams = examRepository.findAll();
-        List<ExamResult> myResults = examResultRepository.findAll().stream()
-                .filter(r -> r.getStudentUsername().equals(studentUsername))
-                .toList();
+        String collegeCode = (student != null && student.getCollegeCode() != null) ? student.getCollegeCode() : "AIT";
+        String collegeName = (student != null && student.getCollegeName() != null) ? student.getCollegeName() : "Apex Institute of Technology";
+        String department = (student != null && student.getDepartment() != null) ? student.getDepartment() : "Computer Science & Engineering";
+        String rollNumber = (student != null && student.getRollNumberOrFacultyId() != null) ? student.getRollNumberOrFacultyId() : "21B91A0501";
+        String fullName = (student != null && student.getFullName() != null) ? student.getFullName() : studentUsername;
+
+        // Multi-tenant exams list for student's college
+        List<Exam> exams = examRepository.findByCollegeCode(collegeCode);
+        List<ExamResult> myResults = examResultRepository.findByStudentUsername(studentUsername);
 
         long totalAttempts = examAttemptRepository.findByStudentUsernameOrderBySubmissionTimeDesc(studentUsername).size();
 
@@ -40,8 +49,11 @@ public class DashboardController {
         }
 
         model.addAttribute("studentUsername", studentUsername);
-        model.addAttribute("collegeName", "Apex Institute of Technology");
-        model.addAttribute("department", "Computer Science & Engineering");
+        model.addAttribute("fullName", fullName);
+        model.addAttribute("rollNumber", rollNumber);
+        model.addAttribute("collegeName", collegeName);
+        model.addAttribute("collegeCode", collegeCode);
+        model.addAttribute("department", department);
         model.addAttribute("availableExamsCount", exams.size());
         model.addAttribute("completedExamsCount", myResults.size());
         model.addAttribute("totalAttemptsCount", totalAttempts);

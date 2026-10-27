@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Institutional Profile - College Online Exam</title>
+    <title>My Institutional Profile - CollegeConnect</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="/js/firebase-config.js"></script>
 
@@ -23,22 +24,27 @@
         }
 
         header {
-            background: #172554;
+            background: #0f172a;
             color: white;
-            padding: 20px 7%;
+            padding: 18px 7%;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         header a {
-            color: white;
+            color: #94a3b8;
             text-decoration: none;
             font-weight: 600;
+            font-size: 14px;
+        }
+
+        header a:hover {
+            color: white;
         }
 
         main {
-            max-width: 750px;
+            max-width: 800px;
             margin: 40px auto;
             padding: 0 20px 50px;
         }
@@ -57,14 +63,17 @@
             margin-bottom: 20px;
             border-bottom: 2px solid #f1f5f9;
             padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .profile-item {
             display: flex;
             justify-content: space-between;
-            padding: 14px 0;
+            padding: 13px 0;
             border-bottom: 1px solid #f1f5f9;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .profile-item strong {
@@ -77,11 +86,22 @@
         }
 
         .role-badge {
-            background: #e0e7ff;
-            color: #3730a3;
+            background: #eff6ff;
+            color: #1d4ed8;
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .college-tag {
+            background: #e0e7ff;
+            color: #3730a3;
+            font-family: monospace;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 6px;
         }
 
         .back-button {
@@ -95,21 +115,33 @@
             font-weight: 700;
             font-size: 14px;
         }
+
+        .back-button:hover {
+            background: #1d4ed8;
+        }
     </style>
 </head>
 <body>
 <header>
-    <h2>Online Exam System</h2>
+    <h2>CollegeConnect Portal</h2>
     <a href="/dashboard">← Back to Dashboard</a>
 </header>
 
 <main>
     <div class="profile-card">
-        <h1>Institutional Profile</h1>
+        <h1>
+            <span>Institutional Candidate Profile</span>
+            <span class="role-badge" th:text="${role}">STUDENT</span>
+        </h1>
 
         <div class="profile-item">
-            <strong>Institutional User ID:</strong>
-            <span th:text="${studentId}">STU-2026-1001</span>
+            <strong>Full Name:</strong>
+            <span th:text="${fullName}">Alex Student</span>
+        </div>
+
+        <div class="profile-item">
+            <strong>Roll Number / Institutional ID:</strong>
+            <span th:text="${studentId}">21B91A0501</span>
         </div>
 
         <div class="profile-item">
@@ -118,13 +150,16 @@
         </div>
 
         <div class="profile-item">
-            <strong>System Role:</strong>
-            <span class="role-badge" th:text="${role}">STUDENT</span>
+            <strong>Official Email:</strong>
+            <span th:text="${email}">student@college.edu</span>
         </div>
 
         <div class="profile-item">
-            <strong>College Institution:</strong>
-            <span th:text="${college}">Apex Institute of Technology</span>
+            <strong>Enrolled Institution:</strong>
+            <span>
+                <span th:text="${college}">Apex Institute of Technology</span>
+                <span class="college-tag" th:text="${collegeCode}">AIT</span>
+            </span>
         </div>
 
         <div class="profile-item">
@@ -133,11 +168,21 @@
         </div>
 
         <div class="profile-item">
-            <strong>Account Status:</strong>
-            <span style="color: #16a34a;" th:text="${status}">Active / Enrolled</span>
+            <strong>Degree & Branch:</strong>
+            <span th:text="${degreeBranch}">B.Tech CSE</span>
         </div>
 
-        <a class="back-button" href="/dashboard">Return to Dashboard</a>
+        <div class="profile-item">
+            <strong>Academic Year & Semester:</strong>
+            <span th:text="${academicYear + ' • ' + semester}">3rd Year • 1st Semester</span>
+        </div>
+
+        <div class="profile-item">
+            <strong>Account Status:</strong>
+            <span style="color: #16a34a; font-weight: 700;" th:text="${status}">ACTIVE</span>
+        </div>
+
+        <a class="back-button" href="/dashboard">Return to Examination Dashboard</a>
     </div>
 </main>
 </body>

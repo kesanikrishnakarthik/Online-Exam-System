@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Super Admin - Multi-College Examination Network</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #0f172a;
+            color: white;
+            padding: 16px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-brand h2 {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .badge-super {
+            background: #dc2626;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-logout {
+            background: #334155;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            background: #475569;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 24px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .alert-success {
+            padding: 14px 18px;
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .alert-error {
+            padding: 14px 18px;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 22px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .metric-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .metric-pill {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+        }
+
+        .pill-green { background: #dcfce7; color: #166534; }
+        .pill-amber { background: #fef3c7; color: #92400e; }
+        .pill-blue { background: #eff6ff; color: #1e40af; }
+
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .content-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .colleges-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .colleges-table th {
+            background: #f8fafc;
+            padding: 12px 16px;
+            font-weight: 700;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .colleges-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .colleges-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .college-code-badge {
+            font-family: monospace;
+            background: #e0e7ff;
+            color: #3730a3;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status-APPROVED { background: #dcfce7; color: #166534; }
+        .status-PENDING { background: #fef3c7; color: #92400e; }
+        .status-SUSPENDED { background: #fee2e2; color: #991b1b; }
+        .status-REJECTED { background: #f1f5f9; color: #64748b; }
+
+        .action-forms {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-approve { background: #10b981; color: white; }
+        .btn-approve:hover { background: #059669; }
+        .btn-reject { background: #ef4444; color: white; }
+        .btn-reject:hover { background: #dc2626; }
+        .btn-suspend { background: #f59e0b; color: white; }
+        .btn-suspend:hover { background: #d97706; }
+
+        .architecture-box {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-top: 30px;
+        }
+
+        .architecture-box h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #60a5fa;
+        }
+
+        .architecture-box p {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+<div class="navbar">
+    <div class="navbar-brand">
+        <h2>CollegeConnect Platform</h2>
+        <span class="badge-super">Super Administrator</span>
+    </div>
+    <div class="nav-actions">
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="btn-logout">Sign Out</button>
+        </form>
+    </div>
+</div>
+
+<div class="main-container">
+    <div class="page-header">
+        <div>
+            <h1>Central Platform Governance Dashboard</h1>
+            <p>Multi-Tenant Institutional Approvals, College Lifecycle Management, and Cloud Auditing</p>
+        </div>
+        <div>
+            <a href="/register-college" style="background: #2563eb; color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 700;">+ Onboard New College</a>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert-success" th:text="${successMessage}">Operation successful!</div>
+    <div th:if="${errorMessage}" class="alert-error" th:text="${errorMessage}">Operation warning.</div>
+
+    <!-- KPI Metric Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-title">Approved Colleges</div>
+            <div class="metric-value" th:text="${approvedCount}">2</div>
+            <div class="metric-pill pill-green">Active Tenants</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-title">Pending Approvals</div>
+            <div class="metric-value" th:text="${pendingCount}">1</div>
+            <div class="metric-pill pill-amber">Awaiting Review</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-title">Total Registered Users</div>
+            <div class="metric-value" th:text="${totalUsers}">6</div>
+            <div class="metric-pill pill-blue">Across All Campuses</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-title">Total Active Exams</div>
+            <div class="metric-value" th:text="${totalExams}">3</div>
+            <div class="metric-pill pill-blue">Multi-College Pool</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-title">Exam Submissions</div>
+            <div class="metric-value" th:text="${totalResults}">0</div>
+            <div class="metric-pill pill-green">Verified Results</div>
+        </div>
+    </div>
+
+    <!-- Onboarded Colleges Table -->
+    <div class="content-card">
+        <h3>
+            <span>Institutions Registry</span>
+            <span style="font-size: 13px; color: #64748b; font-weight: 500;">Total: <strong th:text="${#lists.size(colleges)}">3</strong></span>
+        </h3>
+
+        <div style="overflow-x: auto;">
+            <table class="colleges-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Institution Name</th>
+                        <th>Type</th>
+                        <th>Contact Official</th>
+                        <th>Contact Email</th>
+                        <th>Status</th>
+                        <th>Governance Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="college : ${colleges}">
+                        <td>
+                            <span class="college-code-badge" th:text="${college.code}">AIT</span>
+                        </td>
+                        <td>
+                            <strong th:text="${college.name}">Apex Institute of Technology</strong>
+                            <div style="font-size: 12px; color: #64748b;" th:text="${college.address}">Hyderabad, India</div>
+                        </td>
+                        <td th:text="${college.type}">Engineering & Technology</td>
+                        <td th:text="${college.contactPerson}">Dr. K. Ramanathan</td>
+                        <td th:text="${college.contactEmail}">admin@apex-tech.edu.in</td>
+                        <td>
+                            <span th:class="'status-badge status-' + ${college.status}" th:text="${college.status}">APPROVED</span>
+                        </td>
+                        <td>
+                            <div class="action-forms">
+                                <form th:if="${college.status != 'APPROVED'}" th:action="@{'/platform/college/' + ${college.id} + '/approve'}" method="post">
+                                    <button type="submit" class="btn-action btn-approve">Approve</button>
+                                </form>
+                                <form th:if="${college.status == 'APPROVED'}" th:action="@{'/platform/college/' + ${college.id} + '/suspend'}" method="post">
+                                    <button type="submit" class="btn-action btn-suspend">Suspend</button>
+                                </form>
+                                <form th:if="${college.status == 'PENDING'}" th:action="@{'/platform/college/' + ${college.id} + '/reject'}" method="post">
+                                    <button type="submit" class="btn-action btn-reject">Reject</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- DevOps Architecture & Tenant Isolation Notice -->
+    <div class="architecture-box">
+        <h4>🏛️ Multi-Tenant Architecture & Cloud Isolation Protocol</h4>
+        <p>
+            In this academic DevOps project, every educational institution acts as a logically isolated tenant partitioned by its unique <code>collegeCode</code>. 
+            All examinations, question banks, student attempts, and academic scores are strictly isolated server-side through Spring Data JPA repository specifications and client-side Firestore security rules. 
+            A faculty member or student belonging to <strong>Apex Institute of Technology (AIT)</strong> can never query, observe, or manipulate examinations hosted by <strong>National Institute of Engineering (NIE)</strong>.
+        </p>
+    </div>
+</div>
+</body>
+</html>

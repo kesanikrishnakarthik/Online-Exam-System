@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institutional Onboarding - Multi-College Examination Platform</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%);
+            padding: 30px 15px;
+            color: #1e293b;
+        }
+
+        .card-container {
+            width: 100%;
+            max-width: 680px;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+            padding: 40px;
+        }
+
+        .header-box {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .badge-tenant {
+            display: inline-block;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            border: 1px solid #bfdbfe;
+        }
+
+        .header-box h1 {
+            color: #0f172a;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .header-box p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .alert-error {
+            padding: 14px 18px;
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-grid.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group {
+            margin-bottom: 6px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #334155;
+        }
+
+        label span {
+            color: #ef4444;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .links-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+
+        .links-row a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .links-row a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+<div class="card-container">
+    <div class="header-box">
+        <span class="badge-tenant">MULTI-TENANT ONBOARDING</span>
+        <h1>Register New Institution</h1>
+        <p>Connect your Engineering College, Degree Institute, or University to the central examination network</p>
+    </div>
+
+    <!-- Error message if registration fails -->
+    <div th:if="${errorMessage}" class="alert-error">
+        <span>⚠️</span>
+        <span th:text="${errorMessage}">Validation error occurred.</span>
+    </div>
+
+    <form th:action="@{/register-college}" method="post">
+        <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="name">Institution / College Full Name <span>*</span></label>
+                <input type="text" id="name" name="name" placeholder="e.g. Apex Institute of Technology" required>
+            </div>
+
+            <div class="form-group">
+                <label for="code">Institutional Code <span>*</span></label>
+                <input type="text" id="code" name="code" placeholder="e.g. AIT, JNTU, IITM" style="text-transform: uppercase;" required>
+                <div class="help-text">Unique uppercase identifier for your college tenant</div>
+            </div>
+
+            <div class="form-group">
+                <label for="type">Institution Type <span>*</span></label>
+                <select id="type" name="type" required>
+                    <option value="Engineering & Technology">Engineering & Technology (B.Tech/M.Tech)</option>
+                    <option value="Autonomous Engineering College">Autonomous Engineering College</option>
+                    <option value="Degree & Arts College">Degree & Arts College (B.Sc/B.Com/B.A)</option>
+                    <option value="Polytechnic Diploma">Polytechnic / Diploma Institute</option>
+                    <option value="Deemed University">Deemed / State University</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="address">Campus Address / Location</label>
+                <input type="text" id="address" name="address" placeholder="e.g. Campus Road, Tech Park, Hyderabad, India">
+            </div>
+
+            <div class="form-group">
+                <label for="contactPerson">Dean / Principal / Administrator <span>*</span></label>
+                <input type="text" id="contactPerson" name="contactPerson" placeholder="e.g. Dr. K. Ramanathan" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contactEmail">Official Institutional Email <span>*</span></label>
+                <input type="email" id="contactEmail" name="contactEmail" placeholder="admin@apex-tech.edu.in" required>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="contactPhone">Contact Phone Number</label>
+                <input type="text" id="contactPhone" name="contactPhone" placeholder="+91 98765 43210">
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Submit Institutional Onboarding Request</button>
+    </form>
+
+    <div class="links-row">
+        <a href="/login">← Back to Login</a>
+        <a href="/">Return to Homepage</a>
+    </div>
+</div>
+</body>
+</html>

@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,38 +18,58 @@ public class FacultyController {
     private final QuestionRepository questionRepository;
     private final ExamResultRepository examResultRepository;
     private final ExamAttemptRepository examAttemptRepository;
+    private final UserAccountRepository userAccountRepository;
 
     public FacultyController(
             ExamRepository examRepository,
             QuestionRepository questionRepository,
             ExamResultRepository examResultRepository,
-            ExamAttemptRepository examAttemptRepository) {
+            ExamAttemptRepository examAttemptRepository,
+            UserAccountRepository userAccountRepository) {
         this.examRepository = examRepository;
         this.questionRepository = questionRepository;
         this.examResultRepository = examResultRepository;
         this.examAttemptRepository = examAttemptRepository;
+        this.userAccountRepository = userAccountRepository;
+    }
+
+    private UserAccount getFacultyAccount(Authentication authentication) {
+        if (authentication == null) return null;
+        return userAccountRepository.findByUsername(authentication.getName()).orElse(null);
     }
 
     @GetMapping("/faculty/dashboard")
-    public String facultyDashboard(Model model) {
-        long totalExams = examRepository.count();
-        long totalQuestions = questionRepository.count();
-        long totalResults = examResultRepository.count();
-        long totalAttempts = examAttemptRepository.count();
+    public String facultyDashboard(Authentication authentication, Model model) {
+        UserAccount account = getFacultyAccount(authentication);
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
 
-        model.addAttribute("totalExams", totalExams);
+        List<Exam> exams = examRepository.findByCollegeCode(collegeCode);
+        long totalQuestions = questionRepository.count();
+        List<ExamResult> results = examResultRepository.findByCollegeCode(collegeCode);
+
+        model.addAttribute("collegeName", collegeName);
+        model.addAttribute("collegeCode", collegeCode);
+        model.addAttribute("totalExams", exams.size());
         model.addAttribute("totalQuestions", totalQuestions);
-        model.addAttribute("totalResults", totalResults);
-        model.addAttribute("totalAttempts", totalAttempts);
-        model.addAttribute("message", "Welcome to the Faculty Dashboard");
+        model.addAttribute("totalResults", results.size());
+        model.addAttribute("totalAttempts", results.size());
+        model.addAttribute("message", "Faculty Examination Management Portal");
 
         return "faculty-dashboard";
     }
 
     @GetMapping("/faculty/exams")
-    public String manageExams(Model model) {
-        List<Exam> exams = examRepository.findAll();
+    public String manageExams(Authentication authentication, Model model) {
+        UserAccount account = getFacultyAccount(authentication);
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
+
+        List<Exam> exams = examRepository.findByCollegeCode(collegeCode);
         model.addAttribute("exams", exams);
+        model.addAttribute("collegeName", collegeName);
+        model.addAttribute("collegeCode", collegeCode);
+
         return "faculty-exams";
     }
 
@@ -56,9 +77,15 @@ public class FacultyController {
     public String studentPerformance(
             @RequestParam(required = false) String subject,
             @RequestParam(required = false) String student,
+            Authentication authentication,
             Model model) {
 
-        List<ExamResult> results = examResultRepository.findAll();
+        UserAccount account = getFacultyAccount(authentication);
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
+
+        // Multi-tenant filter: Only results for faculty's own college
+        List<ExamResult> results = examResultRepository.findByCollegeCode(collegeCode);
 
         if (subject != null && !subject.isBlank()) {
             results = results.stream()
@@ -68,32 +95,40 @@ public class FacultyController {
 
         if (student != null && !student.isBlank()) {
             results = results.stream()
-                    .filter(r -> r.getStudentUsername().toLowerCase().contains(student.trim().toLowerCase()))
+                    .filter(r -> r.getStudentUsername().toLowerCase().contains(student.trim().toLowerCase())
+                            || (r.getRollNumber() != null && r.getRollNumber().toLowerCase().contains(student.trim().toLowerCase())))
                     .toList();
         }
 
         model.addAttribute("results", results);
         model.addAttribute("selectedSubject", subject);
         model.addAttribute("selectedStudent", student);
+        model.addAttribute("collegeName", collegeName);
+        model.addAttribute("collegeCode", collegeCode);
 
         return "faculty-results";
     }
 
     @GetMapping("/faculty/results/export")
-    public void exportResultsToCsv(HttpServletResponse response) throws IOException {
+    public void exportResultsToCsv(Authentication authentication, HttpServletResponse response) throws IOException {
+        UserAccount account = getFacultyAccount(authentication);
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
+
         response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=\"college-exam-results.csv\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + collegeCode + "-exam-results.csv\"");
 
         PrintWriter writer = response.getWriter();
-        writer.println("Result ID,Exam Title,Subject,Student Username,College,Score,Total Marks,Percentage,Attempt,Violations,Submission Reason,Date");
+        writer.println("Result ID,Exam Title,Subject,Roll Number,Student Username,College Code,College,Score,Total Marks,Percentage,Attempt,Violations,Submission Reason,Date");
 
-        List<ExamResult> results = examResultRepository.findAll();
+        List<ExamResult> results = examResultRepository.findByCollegeCode(collegeCode);
         for (ExamResult r : results) {
-            writer.printf("%d,\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%.2f%%,%d,%d,\"%s\",\"%s\"%n",
+            writer.printf("%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%.2f%%,%d,%d,\"%s\",\"%s\"%n",
                     r.getId(),
                     r.getExamTitle() != null ? r.getExamTitle().replace("\"", "\"\"") : "",
                     r.getSubject() != null ? r.getSubject().replace("\"", "\"\"") : "",
+                    r.getRollNumber() != null ? r.getRollNumber() : "",
                     r.getStudentUsername(),
+                    r.getCollegeCode() != null ? r.getCollegeCode() : "",
                     r.getCollege() != null ? r.getCollege().replace("\"", "\"\"") : "",
                     r.getScore(),
                     r.getTotalMarks(),
