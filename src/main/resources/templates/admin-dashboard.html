@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Administrator Dashboard - Online Exam System</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        header {
+            background: #0f172a;
+            color: white;
+            padding: 20px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 35px auto;
+            padding: 0 20px 50px;
+        }
+
+        .hero-admin {
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+            color: white;
+            padding: 35px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .hero-admin h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin-top: 6px;
+        }
+
+        .dept-card {
+            background: white;
+            padding: 26px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
+        }
+
+        .dept-card h3 {
+            color: #1e3a8a;
+            margin-bottom: 15px;
+        }
+
+        .badge-pill {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h2>Apex Institute Administrator Portal</h2>
+    <nav>
+        <a href="/admin/dashboard">Admin Home</a>
+        <a href="/admin/audit-logs">Audit Logs</a>
+        <a href="/faculty/dashboard">Faculty View</a>
+        <a href="/dashboard">Student View</a>
+        <a href="/login?logout" style="color: #fca5a5;">Logout</a>
+    </nav>
+</header>
+
+<main>
+    <div class="hero-admin">
+        <h1 th:text="${collegeName}">Apex Institute of Technology</h1>
+        <p>Institutional Oversight, Attempt Quota Governance, and Security Auditing</p>
+        <p style="font-size: 13px; opacity: 0.8; margin-top: 8px;">College Code: <strong th:text="${collegeCode}">AIT-ENG-2026</strong></p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Examinations</div>
+            <div class="stat-value" th:text="${totalExams}">3</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Graded Submissions</div>
+            <div class="stat-value" th:text="${totalResults}">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Attempts Made</div>
+            <div class="stat-value" th:text="${totalAttempts}">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Enrolled Students</div>
+            <div class="stat-value" th:text="${activeStudents}">248</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Academic Faculty</div>
+            <div class="stat-value" th:text="${totalFaculty}">34</div>
+        </div>
+    </div>
+
+    <div class="dept-card">
+        <h3>Configured College Departments & Branches</h3>
+        <div>
+            <span class="badge-pill" th:each="dept : ${departments}" th:text="${dept}">CSE</span>
+        </div>
+    </div>
+
+    <div class="dept-card">
+        <h3>Administrative Quick Actions</h3>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">
+            Manage college exam attempts, investigate anti-cheating alerts, or reset student quotas upon formal academic petition.
+        </p>
+        <a href="/admin/audit-logs" class="btn btn-primary">Review Exam Attempt & Violation Audit Trail</a>
+        <a href="/faculty/results" class="btn btn-primary">Inspect College Examination Results</a>
+    </div>
+</main>
+</body>
+</html>
+

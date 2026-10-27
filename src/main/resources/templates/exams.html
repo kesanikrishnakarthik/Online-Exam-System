@@ -1,19 +1,23 @@
-
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Available Exams</title>
+    <title>Available Examinations - College Online Exam System</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
 
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #f1f5f9;
             color: #1e293b;
         }
@@ -21,38 +25,62 @@
         header {
             background: #172554;
             color: white;
-            padding: 22px 7%;
+            padding: 20px 7%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
         header h2 {
-            margin: 0;
+            font-size: 20px;
+        }
+
+        header nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         header a {
             color: white;
             text-decoration: none;
+            font-weight: 600;
         }
 
         main {
             max-width: 1100px;
-            margin: 40px auto;
-            padding: 0 20px;
+            margin: 35px auto;
+            padding: 0 20px 40px;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border-left: 5px solid #ef4444;
+            color: #991b1b;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-weight: 600;
         }
 
         .intro {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .intro h1 {
             color: #1d4ed8;
+            font-size: 28px;
+        }
+
+        .intro p {
+            color: #64748b;
+            margin-top: 6px;
         }
 
         .exam-list {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 24px;
         }
 
@@ -60,32 +88,78 @@
             background: white;
             padding: 26px;
             border-radius: 14px;
-            box-shadow: 0 5px 20px #0000000d;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease;
+        }
+
+        .exam-card:hover {
+            transform: translateY(-2px);
         }
 
         .exam-card h2 {
             color: #1d4ed8;
+            font-size: 20px;
+            margin-bottom: 12px;
         }
 
         .exam-info {
             line-height: 1.8;
+            font-size: 14px;
+            color: #334155;
+            margin-bottom: 20px;
+        }
+
+        .attempt-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .badge-available {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-exhausted {
+            background: #fee2e2;
+            color: #b91c1c;
         }
 
         .start-button {
-            display: inline-block;
-            margin-top: 15px;
+            display: block;
+            text-align: center;
             padding: 12px 20px;
-            border-radius: 7px;
+            border-radius: 8px;
             background: #2563eb;
             color: white;
             text-decoration: none;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .start-button:hover {
+            background: #1d4ed8;
+        }
+
+        .button-disabled {
+            background: #94a3b8 !important;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         .empty-message {
-            padding: 25px;
+            padding: 35px;
             background: white;
             border-radius: 12px;
             color: #64748b;
+            text-align: center;
         }
     </style>
 </head>
@@ -93,49 +167,78 @@
 <body>
 <header>
     <h2>Online Exam</h2>
-    <a href="/dashboard">Dashboard</a>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/results">My Results</a>
+        <a href="/profile">Profile</a>
+    </nav>
 </header>
 
 <main>
+    <div class="alert-error" th:if="${errorMessage}">
+        <span th:text="${errorMessage}">You have used all three attempts for this examination.</span>
+    </div>
+
     <section class="intro">
-        <h1>Available Exams</h1>
-        <p>Choose an exam from the list below.</p>
+        <h1>Available Examinations</h1>
+        <p>Apex Institute of Technology — Strict 3-Attempt Policy Enforced</p>
     </section>
 
     <section class="exam-list" th:if="${not #lists.isEmpty(exams)}">
         <article class="exam-card" th:each="exam : ${exams}">
-            <h2 th:text="${exam.title}">Exam Title</h2>
+            <div>
+                <h2 th:text="${exam.title}">Exam Title</h2>
 
-            <div class="exam-info">
-                <p>
-                    <strong>Subject:</strong>
-                    <span th:text="${exam.subject}">Subject</span>
-                </p>
+                <div class="exam-info">
+                    <p>
+                        <strong>Subject:</strong>
+                        <span th:text="${exam.subject}">Subject</span>
+                    </p>
+                    <p>
+                        <strong>Duration:</strong>
+                        <span th:text="${exam.durationMinutes}">30</span> minutes
+                    </p>
+                    <p>
+                        <strong>Total Marks:</strong>
+                        <span th:text="${exam.totalMarks}">20</span>
+                    </p>
+                    <p>
+                        <strong>Attempts Used:</strong>
+                        <span th:text="${attemptsUsedMap.get(exam.id)}">0</span> /
+                        <span th:text="${exam.maxAttempts}">3</span>
+                    </p>
 
-                <p>
-                    <strong>Duration:</strong>
-                    <span th:text="${exam.durationMinutes}">30</span> minutes
-                </p>
-
-                <p>
-                    <strong>Total Marks:</strong>
-                    <span th:text="${exam.totalMarks}">20</span>
-                </p>
+                    <div>
+                        <span th:if="${canTakeExamMap.get(exam.id)}"
+                              class="attempt-badge badge-available">
+                            <span th:text="${remainingAttemptsMap.get(exam.id)}">3</span> Attempt(s) Remaining
+                        </span>
+                        <span th:unless="${canTakeExamMap.get(exam.id)}"
+                              class="attempt-badge badge-exhausted">
+                            All 3 Attempts Exhausted
+                        </span>
+                    </div>
+                </div>
             </div>
 
-            <a class="start-button"
-            th:href="@{/exam/{examId}(examId=${exam.id})}">
-            Start Exam
-            </a>
-
+            <div>
+                <a th:if="${canTakeExamMap.get(exam.id)}"
+                   class="start-button"
+                   th:href="@{/exam/{examId}(examId=${exam.id})}">
+                    Start Attempt #<span th:text="${attemptsUsedMap.get(exam.id) + 1}">1</span>
+                </a>
+                <span th:unless="${canTakeExamMap.get(exam.id)}"
+                      class="start-button button-disabled">
+                    Attempts Exhausted
+                </span>
+            </div>
         </article>
     </section>
 
     <section class="empty-message" th:if="${#lists.isEmpty(exams)}">
-        <h3>No exams available yet.</h3>
-        <p>Exams will appear here when they are added to the system.</p>
+        <h3>No examinations are currently scheduled.</h3>
+        <p>Please check back later or contact your department faculty.</p>
     </section>
 </main>
 </body>
 </html>
-

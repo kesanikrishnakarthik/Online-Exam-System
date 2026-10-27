@@ -1,19 +1,23 @@
-
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exam Result - Online Examination System</title>
+    <title>Exam Submission Summary - College Online Exam System</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
 
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #f1f5f9;
             color: #1e293b;
         }
@@ -27,18 +31,15 @@
             align-items: center;
         }
 
-        header h2 {
-            margin: 0;
-        }
-
         header a {
             color: white;
             text-decoration: none;
+            font-weight: 600;
         }
 
         main {
-            max-width: 750px;
-            margin: 60px auto;
+            max-width: 700px;
+            margin: 50px auto;
             padding: 0 20px;
         }
 
@@ -47,38 +48,104 @@
             padding: 40px;
             border-radius: 16px;
             text-align: center;
-            box-shadow: 0 4px 20px #00000010;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
         }
 
         h1 {
-            color: #2563eb;
+            color: #1e3a8a;
+            font-size: 26px;
+            margin-bottom: 8px;
         }
 
-        .score {
-            font-size: 42px;
-            font-weight: bold;
-            color: #16a34a;
-            margin: 25px 0;
+        h2 {
+            color: #2563eb;
+            font-size: 20px;
+            margin-bottom: 25px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #f0fdf4;
+            border: 5px solid #22c55e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto 30px;
+        }
+
+        .score-num {
+            font-size: 38px;
+            font-weight: 800;
+            color: #15803d;
+        }
+
+        .score-total {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .status-alert {
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-normal {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-warning {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .button {
-            display: inline-block;
-            margin: 10px 5px;
-            padding: 13px 20px;
-            background: #2563eb;
-            color: white;
-            border-radius: 7px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
             text-decoration: none;
+            font-size: 15px;
         }
 
-        .button:hover {
-            background: #1d4ed8;
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #334155;
         }
     </style>
 </head>
 
 <body>
-
 <header>
     <h2>Online Exam</h2>
     <a href="/dashboard">Dashboard</a>
@@ -86,28 +153,66 @@
 
 <main>
     <section class="result-card">
-        <h1>Exam Submitted Successfully!</h1>
+        <h1>Examination Submitted</h1>
+        <h2 th:text="${exam.title}">Java Programming</h2>
 
-        <h2 th:text="${exam.title}">Exam Title</h2>
-
-        <p>Your examination score is:</p>
-
-        <div class="score">
-            <span th:text="${score}">0</span>
-            /
-            <span th:text="${totalMarks}">0</span>
+        <div th:if="${submissionReason == 'VIOLATION_LIMIT'}" class="status-alert status-warning">
+            ⚠️ Automatically Submitted: Institutional browser security threshold (3 warnings) reached.
+        </div>
+        <div th:if="${submissionReason == 'TIMEOUT'}" class="status-alert status-warning">
+            ⏰ Automatically Submitted: Examination timer expired.
+        </div>
+        <div th:if="${submissionReason == 'NORMAL'}" class="status-alert status-normal">
+            ✓ Successfully submitted by student within allocated duration.
         </div>
 
-        <p>
-            <strong>Subject:</strong>
-            <span th:text="${exam.subject}">Subject</span>
-        </p>
+        <div class="score-circle">
+            <span class="score-num" th:text="${score}">16</span>
+            <span class="score-total">out of <span th:text="${totalMarks}">20</span></span>
+        </div>
 
-        <a href="/exams" class="button">Available Exams</a>
-        <a href="/dashboard" class="button">Back to Dashboard</a>
+        <div class="meta-grid">
+            <div>
+                <strong>Percentage:</strong>
+                <span th:text="${percentage + '%'}">80.00%</span>
+            </div>
+            <div>
+                <strong>Pass / Fail:</strong>
+                <span th:if="${percentage >= 40.0}" style="color: #16a34a; font-weight: 700;">PASSED</span>
+                <span th:if="${percentage < 40.0}" style="color: #dc2626; font-weight: 700;">FAILED</span>
+            </div>
+            <div>
+                <strong>Attempt Number:</strong>
+                <span>Attempt <span th:text="${attemptNumber}">1</span> of <span th:text="${maxAttempts}">3</span></span>
+            </div>
+            <div>
+                <strong>Violations Logged:</strong>
+                <span th:text="${violationCount}">0</span>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <a class="button btn-primary" href="/results">View All My Results</a>
+            <a class="button btn-secondary" href="/dashboard">Return to Dashboard</a>
+        </div>
     </section>
 </main>
 
+<script th:inline="javascript">
+    // Sync result to Cloud Firestore
+    const resultPayload = {
+        examId: /*[[${exam.id}]]*/ 1,
+        examTitle: /*[[${exam.title}]]*/ "Exam",
+        score: /*[[${score}]]*/ 0,
+        totalMarks: /*[[${totalMarks}]]*/ 0,
+        percentage: /*[[${percentage}]]*/ 0.0,
+        attemptNumber: /*[[${attemptNumber}]]*/ 1,
+        submissionReason: /*[[${submissionReason}]]*/ "NORMAL"
+    };
+
+    if (window.syncExamResultToFirestore) {
+        window.syncExamResultToFirestore(resultPayload);
+    }
+</script>
 </body>
 </html>
-

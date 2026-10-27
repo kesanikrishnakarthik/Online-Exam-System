@@ -1,14 +1,23 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - Online Exam</title>
+    <title>My Institutional Profile - College Online Exam</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
+
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
-            font-family: Arial, sans-serif;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #f1f5f9;
             color: #1e293b;
         }
@@ -25,64 +34,111 @@
         header a {
             color: white;
             text-decoration: none;
+            font-weight: 600;
         }
 
         main {
-            max-width: 800px;
+            max-width: 750px;
             margin: 40px auto;
-            padding: 0 20px;
+            padding: 0 20px 50px;
         }
 
         .profile-card {
             background: white;
-            padding: 30px;
-            border-radius: 14px;
-            box-shadow: 0 4px 15px #00000010;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
         }
 
         h1 {
-            color: #2563eb;
+            color: #1e3a8a;
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
         }
 
         .profile-item {
-            padding: 15px 0;
-            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 15px;
+        }
+
+        .profile-item strong {
+            color: #475569;
+        }
+
+        .profile-item span {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .role-badge {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
         }
 
         .back-button {
             display: inline-block;
-            margin-top: 20px;
-            padding: 12px 18px;
+            margin-top: 25px;
+            padding: 12px 22px;
             background: #2563eb;
             color: white;
             text-decoration: none;
-            border-radius: 7px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 <header>
-    <h2>Online Exam</h2>
-    <a href="/dashboard">Dashboard</a>
+    <h2>Online Exam System</h2>
+    <a href="/dashboard">← Back to Dashboard</a>
 </header>
 
 <main>
     <div class="profile-card">
-        <h1>My Profile</h1>
+        <h1>Institutional Profile</h1>
 
         <div class="profile-item">
-            <strong>Username:</strong>
+            <strong>Institutional User ID:</strong>
+            <span th:text="${studentId}">STU-2026-1001</span>
+        </div>
+
+        <div class="profile-item">
+            <strong>Username / Login Handle:</strong>
             <span th:text="${username}">user</span>
         </div>
 
         <div class="profile-item">
-            <strong>Role:</strong>
-            <span th:text="${role}">STUDENT</span>
+            <strong>System Role:</strong>
+            <span class="role-badge" th:text="${role}">STUDENT</span>
         </div>
 
-        <a class="back-button" href="/dashboard">Back to Dashboard</a>
+        <div class="profile-item">
+            <strong>College Institution:</strong>
+            <span th:text="${college}">Apex Institute of Technology</span>
+        </div>
+
+        <div class="profile-item">
+            <strong>Department:</strong>
+            <span th:text="${department}">Computer Science & Engineering</span>
+        </div>
+
+        <div class="profile-item">
+            <strong>Account Status:</strong>
+            <span style="color: #16a34a;" th:text="${status}">Active / Enrolled</span>
+        </div>
+
+        <a class="back-button" href="/dashboard">Return to Dashboard</a>
     </div>
 </main>
 </body>
 </html>
-

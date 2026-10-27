@@ -1,50 +1,128 @@
-
 package com.onlineexam.online_exam;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class ExamController {
 
     private final ExamRepository examRepository;
     private final QuestionRepository questionRepository;
+    private final ExamResultRepository examResultRepository;
+    private final ExamAttemptRepository examAttemptRepository;
 
     public ExamController(
             ExamRepository examRepository,
-            QuestionRepository questionRepository) {
+            QuestionRepository questionRepository,
+            ExamResultRepository examResultRepository,
+            ExamAttemptRepository examAttemptRepository) {
         this.examRepository = examRepository;
         this.questionRepository = questionRepository;
+        this.examResultRepository = examResultRepository;
+        this.examAttemptRepository = examAttemptRepository;
     }
 
     @GetMapping("/exams")
-    public String availableExams(Model model) {
+    public String availableExams(
+            @RequestParam(required = false) String error,
+            Authentication authentication,
+            Model model) {
+
+        String studentUsername = (authentication != null) ? authentication.getName() : "user";
         List<Exam> exams = examRepository.findAll();
+
+        Map<Long, Integer> attemptsUsedMap = new HashMap<>();
+        Map<Long, Integer> remainingAttemptsMap = new HashMap<>();
+        Map<Long, Boolean> canTakeExamMap = new HashMap<>();
+
+        for (Exam exam : exams) {
+            int used = (int) examAttemptRepository.countByExamIdAndStudentUsername(exam.getId(), studentUsername);
+            int max = exam.getMaxAttempts();
+            int remaining = Math.max(0, max - used);
+
+            attemptsUsedMap.put(exam.getId(), used);
+            remainingAttemptsMap.put(exam.getId(), remaining);
+            canTakeExamMap.put(exam.getId(), remaining > 0);
+        }
+
         model.addAttribute("exams", exams);
+        model.addAttribute("attemptsUsedMap", attemptsUsedMap);
+        model.addAttribute("remainingAttemptsMap", remainingAttemptsMap);
+        model.addAttribute("canTakeExamMap", canTakeExamMap);
+
+        if ("attempts_exhausted".equals(error)) {
+            model.addAttribute("errorMessage", "You have used all three attempts for this examination.");
+        }
+
         return "exams";
     }
 
     @GetMapping("/exam/{examId}")
     public String startExam(
             @PathVariable Long examId,
+            Authentication authentication,
             Model model) {
 
-        Exam exam = examRepository.findById(examId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Exam not found"));
+        String studentUsername = (authentication != null) ? authentication.getName() : "user";
 
-        List<Question> questions =
-                questionRepository.findByExamId(examId);
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new IllegalArgumentException("Exam not found: " + examId));
+
+        // Strict attempt limit check (Atomic server validation)
+        long usedAttempts = examAttemptRepository.countByExamIdAndStudentUsername(examId, studentUsername);
+        if (usedAttempts >= exam.getMaxAttempts()) {
+            return "redirect:/exams?error=attempts_exhausted";
+        }
+
+        List<Question> questions = questionRepository.findByExamId(examId);
+
+        int totalMarks = questions.stream()
+                .mapToInt(Question::getMarks)
+                .sum();
+
+        // Get or initialize active attempt
+        Optional<ExamAttempt> inProgressAttempt = examAttemptRepository
+                .findFirstByExamIdAndStudentUsernameAndStatus(examId, studentUsername, "IN_PROGRESS");
+
+        ExamAttempt attempt;
+        if (inProgressAttempt.isPresent()) {
+            attempt = inProgressAttempt.get();
+        } else {
+            int nextAttemptNum = (int) usedAttempts + 1;
+            attempt = new ExamAttempt(
+                    exam.getId(),
+                    exam.getTitle(),
+                    exam.getSubject(),
+                    studentUsername,
+                    exam.getCollege(),
+                    nextAttemptNum,
+                    LocalDateTime.now(),
+                    "IN_PROGRESS"
+            );
+            attempt.setTotalMarks(totalMarks);
+            examAttemptRepository.save(attempt);
+        }
 
         model.addAttribute("exam", exam);
         model.addAttribute("questions", questions);
+        model.addAttribute("totalMarks", totalMarks);
+        model.addAttribute("attempt", attempt);
+        model.addAttribute("attemptNumber", attempt.getAttemptNumber());
+        model.addAttribute("maxAttempts", exam.getMaxAttempts());
+        model.addAttribute("maxViolations", exam.getMaxViolations());
 
         return "exam";
     }
@@ -53,14 +131,17 @@ public class ExamController {
     public String submitExam(
             @PathVariable Long examId,
             @RequestParam Map<String, String> answers,
+            @RequestParam(required = false, defaultValue = "NORMAL") String submissionReason,
+            @RequestParam(required = false, defaultValue = "0") int violationCount,
+            Authentication authentication,
             Model model) {
 
-        Exam exam = examRepository.findById(examId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Exam not found"));
+        String studentUsername = (authentication != null) ? authentication.getName() : "user";
 
-        List<Question> questions =
-                questionRepository.findByExamId(examId);
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new IllegalArgumentException("Exam not found: " + examId));
+
+        List<Question> questions = questionRepository.findByExamId(examId);
 
         int score = 0;
         int totalMarks = 0;
@@ -68,21 +149,101 @@ public class ExamController {
         for (Question question : questions) {
             totalMarks += question.getMarks();
 
-            String answer =
-                    answers.get("question_" + question.getId());
+            String answer = answers.get("question_" + question.getId());
 
-            if (answer != null &&
-                    answer.equalsIgnoreCase(
-                            question.getCorrectAnswer())) {
+            if (answer != null && answer.trim().equalsIgnoreCase(question.getCorrectAnswer().trim())) {
                 score += question.getMarks();
             }
         }
 
+        // Finalize attempt
+        Optional<ExamAttempt> inProgressAttempt = examAttemptRepository
+                .findFirstByExamIdAndStudentUsernameAndStatus(examId, studentUsername, "IN_PROGRESS");
+
+        int attemptNumber = 1;
+        ExamAttempt attempt;
+        if (inProgressAttempt.isPresent()) {
+            attempt = inProgressAttempt.get();
+            attemptNumber = attempt.getAttemptNumber();
+            attempt.setScore(score);
+            attempt.setTotalMarks(totalMarks);
+            attempt.setSubmissionTime(LocalDateTime.now());
+            attempt.setViolationCount(violationCount);
+            attempt.setSubmissionReason(submissionReason);
+
+            if ("VIOLATION_LIMIT".equalsIgnoreCase(submissionReason)) {
+                attempt.setStatus("AUTO_SUBMITTED_VIOLATION");
+            } else if ("TIMEOUT".equalsIgnoreCase(submissionReason)) {
+                attempt.setStatus("AUTO_SUBMITTED_TIMEOUT");
+            } else {
+                attempt.setStatus("COMPLETED");
+            }
+
+            examAttemptRepository.save(attempt);
+        }
+
+        // Save official result record
+        ExamResult result = new ExamResult(
+                exam.getId(),
+                exam.getTitle(),
+                exam.getSubject(),
+                studentUsername,
+                exam.getCollege(),
+                score,
+                totalMarks,
+                attemptNumber,
+                violationCount,
+                submissionReason
+        );
+        examResultRepository.save(result);
+
+        double percentage = totalMarks > 0 ? Math.round((score * 100.0 / totalMarks) * 100.0) / 100.0 : 0.0;
+
         model.addAttribute("exam", exam);
         model.addAttribute("score", score);
         model.addAttribute("totalMarks", totalMarks);
+        model.addAttribute("percentage", percentage);
+        model.addAttribute("attemptNumber", attemptNumber);
+        model.addAttribute("maxAttempts", exam.getMaxAttempts());
+        model.addAttribute("submissionReason", submissionReason);
+        model.addAttribute("violationCount", violationCount);
 
         return "exam-result";
     }
-}
 
+    @PostMapping("/api/exam/{examId}/violation")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> recordViolation(
+            @PathVariable Long examId,
+            @RequestParam(defaultValue = "1") int violationCount,
+            @RequestParam(defaultValue = "TAB_SWITCH") String violationType,
+            Authentication authentication) {
+
+        String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        Exam exam = examRepository.findById(examId).orElse(null);
+
+        Map<String, Object> response = new HashMap<>();
+        if (exam == null) {
+            response.put("error", "Exam not found");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        Optional<ExamAttempt> inProgressAttempt = examAttemptRepository
+                .findFirstByExamIdAndStudentUsernameAndStatus(examId, studentUsername, "IN_PROGRESS");
+
+        if (inProgressAttempt.isPresent()) {
+            ExamAttempt attempt = inProgressAttempt.get();
+            attempt.setViolationCount(violationCount);
+            examAttemptRepository.save(attempt);
+        }
+
+        boolean autoSubmitted = violationCount >= exam.getMaxViolations();
+
+        response.put("status", "recorded");
+        response.put("violationCount", violationCount);
+        response.put("maxViolations", exam.getMaxViolations());
+        response.put("autoSubmitted", autoSubmitted);
+
+        return ResponseEntity.ok(response);
+    }
+}

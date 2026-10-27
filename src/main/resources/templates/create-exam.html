@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Examination - Faculty Panel</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #1e3a8a;
+            color: white;
+            padding: 20px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 35px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        h1 {
+            color: #1e3a8a;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .btn-submit {
+            background: #2563eb;
+            color: white;
+            padding: 13px 22px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background: #1d4ed8;
+        }
+
+        .error-box {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h2>Faculty Examination Portal</h2>
+    <a href="/faculty/exams">← Back to Exams</a>
+</header>
+
+<div class="container">
+    <h1>Create College Examination</h1>
+
+    <div class="error-box" th:if="${errorMessage}" th:text="${errorMessage}">
+        Error message
+    </div>
+
+    <form th:action="@{/faculty/create-exam}" method="post">
+        <div class="form-group">
+            <label for="title">Examination Title</label>
+            <input type="text" id="title" name="title" placeholder="e.g. Data Structures & Algorithms End-Semester" required>
+        </div>
+
+        <div class="form-group">
+            <label for="subject">Subject Code / Name</label>
+            <input type="text" id="subject" name="subject" placeholder="e.g. DSA, Operating Systems" required>
+        </div>
+
+        <div class="form-group">
+            <label for="durationMinutes">Duration (Minutes)</label>
+            <input type="number" id="durationMinutes" name="durationMinutes" value="30" min="5" max="300" required>
+        </div>
+
+        <div class="form-group">
+            <label for="maxAttempts">Allowed Attempts Per Student (Default 3)</label>
+            <input type="number" id="maxAttempts" name="maxAttempts" value="3" min="1" max="10" required>
+        </div>
+
+        <div class="form-group">
+            <label for="maxViolations">Security Violation Tolerance (Warnings before Auto-Submit)</label>
+            <input type="number" id="maxViolations" name="maxViolations" value="3" min="1" max="10" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Save & Add Questions →</button>
+    </form>
+</div>
+</body>
+</html>

@@ -1,51 +1,80 @@
 pipeline {
     agent any
 
+    environment {
+        APP_NAME = 'online-exam'
+        APP_VERSION = '1.0'
+        CONTAINER_NAME = 'online-exam-container'
+        SERVER_PORT = '8081'
+    }
+
     stages {
         stage('Checkout from GitHub') {
             steps {
+                echo 'Checking out source code from Git repository...'
                 checkout scm
             }
         }
 
-        stage('Check Java') {
+        stage('Environment Verification') {
             steps {
+                echo 'Verifying Java, Maven, and Docker environments...'
                 bat 'java -version'
+                bat 'mvn -version'
+                bat 'docker --version'
             }
         }
 
-        stage('Check Maven') {
+        stage('Run Automated Tests') {
             steps {
-                bat 'mvn -version'
+                echo 'Executing domain, attempt limit, and security unit tests...'
+                bat 'mvn test'
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                }
             }
         }
 
         stage('Build Application') {
             steps {
+                echo 'Packaging Spring Boot executable jar with production assets...'
                 bat 'mvn clean package -DskipTests'
-            }
-        }
-
-        stage('Check Docker') {
-            steps {
-                bat 'docker --version'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t online-exam:1.0 .'
+                echo "Building Docker container image: ${APP_NAME}:${APP_VERSION}..."
+                bat "docker build -t ${APP_NAME}:${APP_VERSION} ."
             }
         }
 
         stage('Deploy Application') {
             steps {
-                bat '''
-                    docker rm -f online-exam-container 2>NUL
-                    docker run -d --name online-exam-container -p 8081:8081 online-exam:1.0
-                '''
+                echo 'Deploying containerized application on port 8081...'
+                bat """
+                    docker rm -f ${CONTAINER_NAME} 2>NUL || ver >NUL
+                    docker run -d --name ${CONTAINER_NAME} -p ${SERVER_PORT}:8081 ${APP_NAME}:${APP_VERSION}
+                """
+            }
+        }
+
+        stage('Health Check & Verification') {
+            steps {
+                echo 'Verifying application deployment and container availability...'
+                bat "docker ps --filter name=${CONTAINER_NAME}"
             }
         }
     }
-}
 
+    post {
+        success {
+            echo 'CI/CD Pipeline executed successfully! College Online Examination System is running at http://localhost:8081'
+        }
+        failure {
+            echo 'CI/CD Pipeline failed. Please check test results and build logs.'
+        }
+    }
+}

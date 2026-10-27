@@ -1,91 +1,303 @@
-
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Take Exam - Online Examination System</title>
+    <title>Examination in Progress - College Online Exam System</title>
+    <!-- Firebase SDK Scripts (CDN compatible for offline/online fallbacks) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
 
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            user-select: none; /* Anti-cheating copy prevention */
+            -webkit-user-select: none;
         }
 
         header {
-            background: #172554;
+            background: #1e3a8a;
             color: white;
-            padding: 20px 7%;
+            padding: 16px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        header a {
-            color: white;
-            text-decoration: none;
+        header .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header h2 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .timer-warning {
+            background: #ef4444 !important;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.04); }
         }
 
         main {
-            max-width: 1000px;
-            margin: 35px auto;
-            padding: 0 20px;
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 20px 40px;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 25px;
         }
 
-        .exam-info, .question-card {
+        @media (max-width: 850px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .exam-info-bar {
             background: white;
-            padding: 25px;
-            margin-bottom: 22px;
+            padding: 20px 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px #00000010;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid #2563eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        h1, h2 {
-            color: #2563eb;
+        .exam-info-bar h1 {
+            font-size: 22px;
+            color: #1e3a8a;
         }
 
-        .option {
-            display: block;
-            padding: 12px;
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-attempt {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .badge-security {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .question-card {
+            background: white;
+            padding: 24px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-card h3 {
+            font-size: 17px;
+            color: #1e293b;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
             margin: 10px 0;
             background: #f8fafc;
-            border: 1px solid #dbeafe;
-            border-radius: 7px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .option:hover {
+        .option-label:hover {
             background: #eff6ff;
+            border-color: #93c5fd;
         }
 
-        .option input {
-            margin-right: 10px;
+        .option-label input[type="radio"] {
+            margin-right: 14px;
+            width: 18px;
+            height: 18px;
+            accent-color: #2563eb;
         }
 
-        button {
+        .option-label input[type="radio"]:checked + span {
+            font-weight: 600;
+            color: #1d4ed8;
+        }
+
+        /* Sidebar Question Palette */
+        .sidebar {
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+        }
+
+        .palette-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .palette-card h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #1e3a8a;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .palette-btn {
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .palette-btn.answered {
+            background: #22c55e;
+            color: white;
+            border-color: #16a34a;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
             background: #2563eb;
             color: white;
             border: none;
-            padding: 14px 25px;
-            border-radius: 7px;
+            border-radius: 8px;
             font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
         }
 
-        button:hover {
+        .submit-btn:hover {
             background: #1d4ed8;
         }
 
-        .empty {
+        /* Modal Overlay for Anti-Cheating Warnings */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
             background: white;
-            padding: 25px;
-            border-radius: 10px;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-top: 6px solid #ef4444;
+        }
+
+        .modal-box h2 {
+            color: #b91c1c;
+            margin-bottom: 12px;
+        }
+
+        .modal-box p {
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            font-size: 15px;
+        }
+
+        .modal-btn {
+            background: #ef4444;
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -93,84 +305,277 @@
 <body>
 
 <header>
-    <h2>Online Exam</h2>
-    <a href="/dashboard">Dashboard</a>
+    <div class="brand">
+        <h2>College Online Exam System</h2>
+    </div>
+
+    <div class="timer-container" id="timerBox">
+        <span>Time Left:</span>
+        <span id="countdown">--:--</span>
+    </div>
 </header>
 
 <main>
-    <section class="exam-info">
-        <h1 th:text="${exam.title}">Exam Title</h1>
-        <p>
-            <strong>Subject:</strong>
-            <span th:text="${exam.subject}">Subject</span>
-        </p>
-        <p>
-            <strong>Duration:</strong>
-            <span th:text="${exam.durationMinutes}">30</span> minutes
-        </p>
-        <p>
-            <strong>Total Marks:</strong>
-            <span th:text="${exam.totalMarks}">20</span>
-        </p>
-    </section>
+    <div class="content-column">
+        <div class="exam-info-bar">
+            <div>
+                <h1 th:text="${exam.title}">Java Programming Exam</h1>
+                <p style="color: #64748b; font-size: 14px; margin-top: 4px;">
+                    Subject: <strong th:text="${exam.subject}">Java</strong> |
+                    Total Marks: <strong th:text="${totalMarks}">20</strong>
+                </p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <span class="badge badge-attempt">
+                    Attempt <span th:text="${attemptNumber}">1</span> of <span th:text="${maxAttempts}">3</span>
+                </span>
+                <span class="badge badge-security">
+                    Integrity Monitoring Active
+                </span>
+            </div>
+        </div>
 
-    <form th:if="${not #lists.isEmpty(questions)}"
-          th:action="@{/exam/{id}/submit(id=${exam.id})}"
-          method="post">
+        <form id="examForm"
+              th:action="@{/exam/{id}/submit(id=${exam.id})}"
+              method="post">
 
-        <section class="question-card"
-                 th:each="question, stat : ${questions}">
+            <input type="hidden" name="submissionReason" id="submissionReasonInput" value="NORMAL">
+            <input type="hidden" name="violationCount" id="violationCountInput" value="0">
 
-            <h3>
-                <span th:text="${stat.count}">1</span>.
-                <span th:text="${question.questionText}">Question</span>
-            </h3>
+            <section class="question-card"
+                     th:each="question, stat : ${questions}"
+                     th:id="'qcard-' + ${stat.count}">
 
-            <p>
-                <strong>Marks:</strong>
-                <span th:text="${question.marks}">1</span>
-            </p>
+                <h3>
+                    <span th:text="${stat.count}">1</span>.
+                    <span th:text="${question.questionText}">Question Text</span>
+                    <span style="float: right; font-size: 13px; color: #64748b; font-weight: normal;">
+                        [<span th:text="${question.marks}">1</span> Mark]
+                    </span>
+                </h3>
 
-            <label class="option">
-                <input type="radio"
-                       th:name="${'question_' + question.id}"
-                       value="A">
-                <span th:text="${question.optionA}">Option A</span>
-            </label>
+                <label class="option-label">
+                    <input type="radio"
+                           th:name="${'question_' + question.id}"
+                           th:data-qnum="${stat.count}"
+                           value="A"
+                           onchange="onAnswerSelected(this)">
+                    <span th:text="${question.optionA}">Option A</span>
+                </label>
 
-            <label class="option">
-                <input type="radio"
-                       th:name="${'question_' + question.id}"
-                       value="B">
-                <span th:text="${question.optionB}">Option B</span>
-            </label>
+                <label class="option-label">
+                    <input type="radio"
+                           th:name="${'question_' + question.id}"
+                           th:data-qnum="${stat.count}"
+                           value="B"
+                           onchange="onAnswerSelected(this)">
+                    <span th:text="${question.optionB}">Option B</span>
+                </label>
 
-            <label class="option">
-                <input type="radio"
-                       th:name="${'question_' + question.id}"
-                       value="C">
-                <span th:text="${question.optionC}">Option C</span>
-            </label>
+                <label class="option-label">
+                    <input type="radio"
+                           th:name="${'question_' + question.id}"
+                           th:data-qnum="${stat.count}"
+                           value="C"
+                           onchange="onAnswerSelected(this)">
+                    <span th:text="${question.optionC}">Option C</span>
+                </label>
 
-            <label class="option">
-                <input type="radio"
-                       th:name="${'question_' + question.id}"
-                       value="D">
-                <span th:text="${question.optionD}">Option D</span>
-            </label>
-        </section>
+                <label class="option-label">
+                    <input type="radio"
+                           th:name="${'question_' + question.id}"
+                           th:data-qnum="${stat.count}"
+                           value="D"
+                           onchange="onAnswerSelected(this)">
+                    <span th:text="${question.optionD}">Option D</span>
+                </label>
+            </section>
+        </form>
+    </div>
 
-        <button type="submit">Submit Exam</button>
-    </form>
+    <!-- Right Sidebar Question Navigation & Timer Summary -->
+    <div class="sidebar">
+        <div class="palette-card">
+            <h3>Question Palette</h3>
 
-    <section class="empty"
-             th:if="${#lists.isEmpty(questions)}">
-        <h2>No Questions Available</h2>
-        <p>This exam does not have any questions yet.</p>
-        <a href="/exams">Back to Available Exams</a>
-    </section>
+            <div class="palette-grid">
+                <button type="button"
+                        th:each="question, stat : ${questions}"
+                        th:id="'palette-btn-' + ${stat.count}"
+                        class="palette-btn"
+                        th:text="${stat.count}"
+                        th:onclick="'scrollToQuestion(' + ${stat.count} + ')'">
+                    1
+                </button>
+            </div>
+
+            <div class="stat-row">
+                <span>Total Questions:</span>
+                <span class="stat-value" th:text="${#lists.size(questions)}">5</span>
+            </div>
+            <div class="stat-row">
+                <span>Answered:</span>
+                <span class="stat-value" id="answeredCount">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Remaining:</span>
+                <span class="stat-value" id="unansweredCount" th:text="${#lists.size(questions)}">5</span>
+            </div>
+            <div class="stat-row" style="color: #b91c1c;">
+                <span>Security Warnings:</span>
+                <span class="stat-value" id="violationCountDisplay">0 / <span th:text="${maxViolations}">3</span></span>
+            </div>
+
+            <button type="button" class="submit-btn" onclick="confirmManualSubmit()">
+                Submit Final Exam
+            </button>
+        </div>
+    </div>
 </main>
+
+<!-- Security Violation Alert Modal -->
+<div class="modal-overlay" id="violationModal">
+    <div class="modal-box">
+        <h2 id="violationTitle">Security Alert: Focus Lost</h2>
+        <p id="violationMessage">
+            You switched away from the examination tab or exited fullscreen mode.
+            This action has been logged on the server.
+        </p>
+        <button class="modal-btn" onclick="acknowledgeViolation()">
+            I Understand & Resume Exam
+        </button>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /* Global Exam Configuration */
+    const EXAM_ID = /*[[${exam.id}]]*/ 1;
+    const DURATION_MINUTES = /*[[${exam.durationMinutes}]]*/ 30;
+    const MAX_VIOLATIONS = /*[[${maxViolations}]]*/ 3;
+    const TOTAL_QUESTIONS = /*[[${#lists.size(questions)}]]*/ 5;
+
+    let timeRemainingSeconds = DURATION_MINUTES * 60;
+    let violationCount = 0;
+    let examSubmitted = false;
+
+    // Countdown Timer Loop
+    const timerInterval = setInterval(() => {
+        if (timeRemainingSeconds <= 0) {
+            clearInterval(timerInterval);
+            triggerAutoSubmit("TIMEOUT", "Time has expired! Submitting your examination answers automatically.");
+            return;
+        }
+
+        timeRemainingSeconds--;
+        const minutes = Math.floor(timeRemainingSeconds / 60);
+        const seconds = timeRemainingSeconds % 60;
+        document.getElementById('countdown').textContent =
+            String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+
+        if (timeRemainingSeconds <= 300) { // 5 minutes warning
+            document.getElementById('timerBox').classList.add('timer-warning');
+        }
+    }, 1000);
+
+    // Question selection palette updater
+    function onAnswerSelected(radioInput) {
+        const qNum = radioInput.getAttribute('data-qnum');
+        const pBtn = document.getElementById('palette-btn-' + qNum);
+        if (pBtn) pBtn.classList.add('answered');
+        updatePaletteStats();
+    }
+
+    function updatePaletteStats() {
+        const answered = document.querySelectorAll('.palette-btn.answered').length;
+        document.getElementById('answeredCount').textContent = answered;
+        document.getElementById('unansweredCount').textContent = Math.max(0, TOTAL_QUESTIONS - answered);
+    }
+
+    function scrollToQuestion(qNum) {
+        const el = document.getElementById('qcard-' + qNum);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Anti-Cheating Monitoring
+    function handleSecurityViolation(reason) {
+        if (examSubmitted) return;
+        violationCount++;
+        document.getElementById('violationCountInput').value = violationCount;
+        document.getElementById('violationCountDisplay').textContent = violationCount + " / " + MAX_VIOLATIONS;
+
+        // Log violation to backend
+        fetch('/api/exam/' + EXAM_ID + '/violation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'violationCount=' + violationCount + '&violationType=' + encodeURIComponent(reason)
+        }).catch(err => console.log('Violation report offline standby:', err));
+
+        // Sync with Firestore if active
+        if (window.logViolationToFirestore) {
+            window.logViolationToFirestore({
+                examId: EXAM_ID,
+                violationReason: reason,
+                violationNumber: violationCount
+            });
+        }
+
+        if (violationCount >= MAX_VIOLATIONS) {
+            triggerAutoSubmit("VIOLATION_LIMIT", "Maximum security violations (" + MAX_VIOLATIONS + ") exceeded. Your examination has been automatically submitted.");
+        } else {
+            document.getElementById('violationTitle').textContent = "Security Warning #" + violationCount;
+            document.getElementById('violationMessage').textContent =
+                "A violation was detected: " + reason + ". Institutional policy permits a maximum of " + MAX_VIOLATIONS + " warnings before automatic submission.";
+            document.getElementById('violationModal').style.display = 'flex';
+        }
+    }
+
+    function acknowledgeViolation() {
+        document.getElementById('violationModal').style.display = 'none';
+        try {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+        } catch(e) {}
+    }
+
+    // Monitor tab switching and window blur
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            handleSecurityViolation("Switched browser tab or minimized window");
+        }
+    });
+
+    window.addEventListener('blur', () => {
+        handleSecurityViolation("Left examination window");
+    });
+
+    // Disable context menu and copy shortcuts
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'v' || e.key === 'u' || e.key === 'p')) {
+            e.preventDefault();
+        }
+    });
+
+    function confirmManualSubmit() {
+        if (confirm("Are you sure you want to finish and submit your exam? You cannot modify answers after submission.")) {
+            submitForm("NORMAL");
+        }
+    }
+
+    function triggerAutoSubmit(reason, alertMsg) {
+        if (examSubmitted) return;
+        examSubmitted = true;
+        alert(alertMsg);
+        submitForm(reason);
+    }
+
+    function submitForm(reason) {
+        document.getElementById('submissionReasonInput').value = reason;
+        document.getElementById('violationCountInput').value = violationCount;
+        document.getElementById('examForm').submit();
+    }
+</script>
 
 </body>
 </html>
-

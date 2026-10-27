@@ -1,14 +1,23 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Results - Online Exam</title>
+    <title>My Results - College Online Examination System</title>
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/js/firebase-config.js"></script>
+
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
-            font-family: Arial, sans-serif;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #f1f5f9;
             color: #1e293b;
         }
@@ -25,49 +34,137 @@
         header a {
             color: white;
             text-decoration: none;
+            font-weight: 600;
         }
 
         main {
             max-width: 1000px;
             margin: 40px auto;
-            padding: 0 20px;
+            padding: 0 20px 40px;
+        }
+
+        .header-section {
+            margin-bottom: 25px;
+        }
+
+        .header-section h1 {
+            color: #1d4ed8;
+            font-size: 28px;
         }
 
         .result-card {
             background: white;
-            padding: 30px;
+            padding: 25px;
+            margin-bottom: 20px;
             border-radius: 14px;
-            box-shadow: 0 4px 15px #00000010;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
         }
 
-        h1 {
-            color: #2563eb;
+        .result-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .result-card-header h2 {
+            font-size: 20px;
+            color: #1e3a8a;
+        }
+
+        .score-pill {
+            background: #f0fdf4;
+            color: #15803d;
+            font-weight: 800;
+            font-size: 18px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .grid-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            font-size: 14px;
         }
 
         .back-button {
             display: inline-block;
             margin-top: 20px;
-            padding: 12px 18px;
+            padding: 12px 22px;
             background: #2563eb;
             color: white;
             text-decoration: none;
-            border-radius: 7px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .empty-message {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            text-align: center;
+            color: #64748b;
         }
     </style>
 </head>
+
 <body>
 <header>
-    <h2>Online Exam</h2>
-    <a href="/dashboard">Dashboard</a>
+    <h2>Online Exam System</h2>
+    <a href="/dashboard">← Back to Dashboard</a>
 </header>
 
 <main>
-    <div class="result-card">
-        <h1>My Results</h1>
-        <p th:text="${message}">You have not completed any exams yet.</p>
-        <a class="back-button" href="/dashboard">Back to Dashboard</a>
+    <div class="header-section">
+        <h1>My Examination Results</h1>
+        <p>Official graded test scores and attempt records</p>
+    </div>
+
+    <div class="empty-message" th:if="${#lists.isEmpty(results)}">
+        <h3>You have not completed any examinations yet.</h3>
+        <p>Completed exams and scores will appear here automatically.</p>
+        <a class="back-button" href="/exams">View Available Exams</a>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(results)}">
+        <div class="result-card" th:each="result : ${results}">
+            <div class="result-card-header">
+                <div>
+                    <h2 th:text="${result.examTitle}">Java Programming</h2>
+                    <span style="font-size: 13px; color: #64748b;" th:text="'Subject: ' + ${result.subject}">Java</span>
+                </div>
+                <div class="score-pill">
+                    <span th:text="${result.score + ' / ' + result.totalMarks}">16 / 20</span>
+                </div>
+            </div>
+
+            <div class="grid-info">
+                <div>
+                    <strong>Percentage:</strong>
+                    <span th:text="${result.percentage + '%'}">80%</span>
+                </div>
+                <div>
+                    <strong>Attempt:</strong>
+                    <span th:text="'Attempt ' + ${result.attemptNumber}">Attempt 1</span>
+                </div>
+                <div>
+                    <strong>Submission Type:</strong>
+                    <span th:text="${result.submissionReason}">NORMAL</span>
+                </div>
+                <div>
+                    <strong>Violations Recorded:</strong>
+                    <span th:text="${result.violationCount}">0</span>
+                </div>
+            </div>
+        </div>
+
+        <a class="back-button" href="/dashboard">Return to Dashboard</a>
     </div>
 </main>
 </body>
 </html>
-

@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isCollegeMember(collegeId) {
+      return isAuthenticated() && getUserData().collegeId == collegeId;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    function isFaculty() {
+      return hasRole('FACULTY') || hasRole('ADMIN');
+    }
+
+    function isAdmin() {
+      return hasRole('ADMIN');
+    }
+
+    // 1. Colleges Collection
+    match /colleges/{collegeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // 2. Users Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() || (isOwner(userId) && request.resource.data.role == 'STUDENT');
+      allow delete: if isAdmin();
+    }
+
+    // 3. Exams Collection
+    match /exams/{examId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isFaculty();
+    }
+
+    // 4. Questions Collection
+    match /questions/{questionId} {
+      // Correct answers must never be readable by students before exam submission
+      allow read: if isFaculty() || (isAuthenticated() && !('correctAnswer' in resource.data));
+      allow write: if isFaculty();
+    }
+
+    // 5. Exam Attempts Collection (Strict 3-attempt limit)
+    match /examAttempts/{attemptId} {
+      allow read: if isAuthenticated() && (resource.data.studentUsername == request.auth.token.email || isFaculty());
+      allow create: if isAuthenticated() && request.resource.data.attemptNumber <= 3;
+      allow update: if isFaculty() || (isAuthenticated() && request.resource.data.status in ['COMPLETED', 'AUTO_SUBMITTED_VIOLATION', 'AUTO_SUBMITTED_TIMEOUT']);
+      allow delete: if isAdmin();
+    }
+
+    // 6. Results Collection (Students can only read their own score)
+    match /results/{resultId} {
+      allow read: if isAuthenticated() && (resource.data.studentUsername == request.auth.token.email || isFaculty());
+      // Results are strictly authored by server/faculty authority
+      allow write: if isFaculty();
+    }
+
+    // 7. Exam Violations Audit Trail
+    match /examViolations/{violationId} {
+      allow read: if isFaculty();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // 8. Administrative Audit Logs
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
+
