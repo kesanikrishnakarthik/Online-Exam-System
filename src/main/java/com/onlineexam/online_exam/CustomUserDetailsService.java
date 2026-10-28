@@ -29,16 +29,24 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
 
         String trimmed = loginIdentifier.trim();
-        Optional<UserAccount> userOpt = userAccountRepository.findByUsername(trimmed);
+        Optional<UserAccount> userOpt = userAccountRepository.findByUsernameIgnoreCase(trimmed);
 
-        // 1. Check if identifier contains college prefix e.g. "AIT:21B91A0501" or "AIT/21B91A0501"
+        // 1. Check if identifier contains college prefix e.g. "INDU:admin", "AIT:21B91A0501" or "AIT/21B91A0501"
         if (userOpt.isEmpty() && (trimmed.contains(":") || trimmed.contains("/"))) {
             String[] parts = trimmed.split("[:/]", 2);
-            userOpt = userAccountRepository.findByCollegeCodeAndInstitutionalId(
-                    parts[0].trim().toUpperCase(), parts[1].trim());
+            String colCode = parts[0].trim();
+            String ident = parts[1].trim();
+
+            // First check if username matches within that college
+            userOpt = userAccountRepository.findByCollegeCodeIgnoreCaseAndUsernameIgnoreCase(colCode, ident);
+
+            // If not found, check if institutionalId matches within that college
+            if (userOpt.isEmpty()) {
+                userOpt = userAccountRepository.findByCollegeCodeIgnoreCaseAndInstitutionalIdIgnoreCase(colCode, ident);
+            }
         }
 
-        // 2. Check if identifier directly matches student Roll Number or Faculty ID
+        // 2. Check if identifier directly matches student Roll Number or Faculty ID or Admin institutional ID
         if (userOpt.isEmpty()) {
             List<UserAccount> matchingById = userAccountRepository.findAllByInstitutionalIdIgnoreCase(trimmed);
             if (matchingById.size() == 1) {

@@ -38,7 +38,7 @@ public class AdminController {
 
     private String getAdminCollegeCode(Authentication authentication) {
         if (authentication == null) return "";
-        return userAccountRepository.findByUsername(authentication.getName())
+        return userAccountRepository.findByUsernameIgnoreCase(authentication.getName())
                 .map(UserAccount::getCollegeCode)
                 .map(String::trim)
                 .map(String::toUpperCase)

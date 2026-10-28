@@ -215,6 +215,11 @@
             Your institutional account or college registration is currently pending administrative review and approval.
         </div>
 
+        <!-- Account Suspended -->
+        <div th:if="${param.suspended}" class="alert-error">
+            Your institutional account has been suspended by administration.
+        </div>
+
         <!-- Logout Message -->
         <div th:if="${param.logout}" class="alert-logout">
             You have been safely signed out.

@@ -8,13 +8,21 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
 
     Optional<UserAccount> findByUsername(String username);
 
+    Optional<UserAccount> findByUsernameIgnoreCase(String username);
+
     Optional<UserAccount> findByCollegeCodeAndInstitutionalId(String collegeCode, String institutionalId);
+
+    Optional<UserAccount> findByCollegeCodeIgnoreCaseAndInstitutionalIdIgnoreCase(String collegeCode, String institutionalId);
+
+    Optional<UserAccount> findByCollegeCodeIgnoreCaseAndUsernameIgnoreCase(String collegeCode, String username);
 
     List<UserAccount> findAllByInstitutionalIdIgnoreCase(String institutionalId);
 
     Optional<UserAccount> findByEmailIgnoreCase(String email);
 
     List<UserAccount> findByCollegeCodeAndRole(String collegeCode, String role);
+
+    List<UserAccount> findByCollegeCodeIgnoreCaseAndRoleIgnoreCase(String collegeCode, String role);
 
     List<UserAccount> findByCollegeCode(String collegeCode);
 
@@ -24,7 +32,12 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, Long> 
 
     boolean existsByUsername(String username);
 
+    boolean existsByUsernameIgnoreCase(String username);
+
     boolean existsByCollegeCodeAndInstitutionalId(String collegeCode, String institutionalId);
+
+    boolean existsByCollegeCodeIgnoreCaseAndInstitutionalIdIgnoreCase(String collegeCode, String institutionalId);
 
     boolean existsByEmailIgnoreCase(String email);
 }
+

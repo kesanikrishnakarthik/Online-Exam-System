@@ -21,14 +21,14 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model) {
-        List<College> approvedColleges = collegeRepository.findByStatus("APPROVED");
+        List<College> approvedColleges = collegeRepository.findByStatusIn(List.of("APPROVED", "ACTIVE"));
         model.addAttribute("approvedColleges", approvedColleges);
         return "home";
     }
 
     @GetMapping("/login")
     public String login(Model model) {
-        List<College> approvedColleges = collegeRepository.findByStatus("APPROVED");
+        List<College> approvedColleges = collegeRepository.findByStatusIn(List.of("APPROVED", "ACTIVE"));
         model.addAttribute("colleges", approvedColleges);
         return "login";
     }

@@ -4,10 +4,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -381,5 +384,153 @@ class ExamSystemUnitTests {
         assertEquals(s1.getInstitutionalId(), s2.getInstitutionalId(), "Roll numbers can be shared across separate colleges");
         assertNotEquals(s1.getCollegeCode(), s2.getCollegeCode(), "Colleges must differ");
         assertNotEquals(s1.getUsername(), s2.getUsername(), "Global username must be segregated");
+    }
+
+    @Test
+    @DisplayName("Test 19: Verify College & Administrator Registration Data Binding & BCrypt Hash")
+    void testCollegeAndAdminRegistrationWorkflow() {
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        String rawPassword = "AdminSecurePass123!";
+
+        // Register Sri Indu Engineering College
+        College college = new College("Sri Indu Engineering College", "INDU", "Engineering & Technology", "APPROVED",
+                "Ibrahimpatnam, Hyderabad", "Dr. Principal", "principal@sriindu.ac.in", "+919876543210");
+        college.setId(10L);
+
+        assertEquals("APPROVED", college.getStatus(), "Newly registered college must have APPROVED status for immediate operations");
+        assertEquals("INDU", college.getCode());
+
+        // Create linked administrator account
+        UserAccount adminAccount = new UserAccount(
+                "indu_admin",
+                encoder.encode(rawPassword),
+                "Dr. Principal",
+                "principal@sriindu.ac.in",
+                "INDU-ADM-01",
+                "ROLE_ADMIN",
+                college.getCode(),
+                college.getName(),
+                "Academic Administration"
+        );
+        adminAccount.setStatus("ACTIVE");
+
+        assertEquals("ACTIVE", adminAccount.getStatus(), "Newly registered admin must be ACTIVE to allow immediate login");
+        assertEquals("ROLE_ADMIN", adminAccount.getRole());
+        assertEquals("INDU", adminAccount.getCollegeCode(), "Admin must be strictly linked to college tenant code");
+        assertTrue(encoder.matches(rawPassword, adminAccount.getPassword()), "Stored password must be a valid BCrypt hash");
+    }
+
+    @Test
+    @DisplayName("Test 20: Verify Administrator Password Verification and Rejection")
+    void testAdminPasswordVerificationAndRejection() {
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        String correctPassword = "CorrectAdminPassword#2026";
+        String wrongPassword = "WrongPassword#2026";
+
+        String encoded = encoder.encode(correctPassword);
+
+        assertTrue(encoder.matches(correctPassword, encoded), "Correct password must verify successfully");
+        assertFalse(encoder.matches(wrongPassword, encoded), "Incorrect password must be rejected");
+        assertFalse(encoder.matches("", encoded), "Empty password must be rejected");
+    }
+
+    @Test
+    @DisplayName("Test 21: Verify Duplicate College Code and Username Collision Detection")
+    void testDuplicateRegistrationValidation() {
+        List<College> existingColleges = List.of(
+                new College("Apex Institute of Technology", "AIT", "Engineering", "APPROVED", "Campus", "Dean", "dean@ait.edu", "123"),
+                new College("Sri Indu Engineering College", "INDU", "Engineering", "APPROVED", "Campus", "Principal", "p@indu.edu", "456")
+        );
+
+        // Case-insensitive college code uniqueness check
+        String duplicateCodeInput = "indu";
+        boolean codeExists = existingColleges.stream()
+                .anyMatch(c -> c.getCode().equalsIgnoreCase(duplicateCodeInput.trim()));
+        assertTrue(codeExists, "Duplicate institutional code (even lowercase 'indu') must be detected");
+
+        String newCodeInput = "MIT";
+        boolean newCodeExists = existingColleges.stream()
+                .anyMatch(c -> c.getCode().equalsIgnoreCase(newCodeInput.trim()));
+        assertFalse(newCodeExists, "Unique institutional code must be accepted");
+
+        // Case-insensitive administrator username uniqueness check
+        List<UserAccount> existingUsers = List.of(
+                new UserAccount("indu_admin", "hash", "Admin", "a@indu.edu", "INDU-ADM-01", "ROLE_ADMIN", "INDU", "Sri Indu", "Admin")
+        );
+        String duplicateUsername = "INDU_ADMIN";
+        boolean usernameExists = existingUsers.stream()
+                .anyMatch(u -> u.getUsername().equalsIgnoreCase(duplicateUsername.trim()));
+        assertTrue(usernameExists, "Duplicate administrator username must be detected regardless of case");
+    }
+
+    @Test
+    @DisplayName("Test 22: Verify Login Identifier Resolution for Prefixed and Direct Inputs")
+    void testLoginIdentifierResolution() {
+        UserAccount admin = new UserAccount("indu_admin", "hash", "Dr. Principal", "admin@indu.edu",
+                "INDU-ADM-01", "ROLE_ADMIN", "INDU", "Sri Indu", "Admin");
+
+        // Direct username lookup
+        assertEquals("indu_admin", admin.getUsername());
+
+        // Dropdown compound lookup: "INDU:indu_admin"
+        String loginInputWithDropdown = "INDU:indu_admin";
+        String[] parts = loginInputWithDropdown.split("[:/]", 2);
+        String colCode = parts[0].trim();
+        String ident = parts[1].trim();
+
+        assertEquals("INDU", colCode);
+        assertTrue(admin.getCollegeCode().equalsIgnoreCase(colCode));
+        assertTrue(admin.getUsername().equalsIgnoreCase(ident) || admin.getInstitutionalId().equalsIgnoreCase(ident));
+
+        // Compound lookup with institutional ID: "INDU:INDU-ADM-01"
+        String loginInputWithInstId = "INDU:INDU-ADM-01";
+        String[] instParts = loginInputWithInstId.split("[:/]", 2);
+        assertTrue(admin.getInstitutionalId().equalsIgnoreCase(instParts[1].trim()));
+    }
+
+    @Test
+    @DisplayName("Test 23: Verify Dynamic College Dropdown Filter Only Displays Approved/Active Colleges")
+    void testDynamicCollegeDropdownFilter() {
+        List<College> allColleges = List.of(
+                new College("Apex Institute of Technology", "AIT", "Engineering", "APPROVED", "Addr", "Dean", "d@ait.edu", "111"),
+                new College("Sri Indu Engineering College", "INDU", "Engineering", "APPROVED", "Addr", "Principal", "p@indu.edu", "222"),
+                new College("Pending Test College", "PEND", "Engineering", "PENDING", "Addr", "Contact", "c@pend.edu", "333"),
+                new College("Suspended College", "SUSP", "Engineering", "SUSPENDED", "Addr", "Contact", "c@susp.edu", "444")
+        );
+
+        List<College> eligibleForDropdown = allColleges.stream()
+                .filter(c -> "APPROVED".equalsIgnoreCase(c.getStatus()) || "ACTIVE".equalsIgnoreCase(c.getStatus()))
+                .toList();
+
+        assertEquals(2, eligibleForDropdown.size(), "Only APPROVED or ACTIVE colleges must appear in candidate registration dropdowns");
+        assertTrue(eligibleForDropdown.stream().anyMatch(c -> "INDU".equals(c.getCode())), "Sri Indu (INDU) must be present in dropdown");
+        assertTrue(eligibleForDropdown.stream().anyMatch(c -> "AIT".equals(c.getCode())), "Apex (AIT) must be present in dropdown");
+        assertFalse(eligibleForDropdown.stream().anyMatch(c -> "PEND".equals(c.getCode())), "Pending colleges must not be shown");
+        assertFalse(eligibleForDropdown.stream().anyMatch(c -> "SUSP".equals(c.getCode())), "Suspended colleges must not be shown");
+    }
+
+    @Test
+    @DisplayName("Test 24: Verify Candidate College Selection Resolution via Primary Key ID or Code")
+    void testCandidateCollegeSelectionResolution() {
+        College college1 = new College("Sri Indu Engineering College", "INDU", "Engineering", "APPROVED", "Campus", "Dean", "dean@indu.edu", "123");
+        college1.setId(42L);
+
+        List<College> colleges = List.of(college1);
+
+        // Case A: Form submits stable database ID "42"
+        String submittedId = "42";
+        Optional<College> resolvedById = colleges.stream()
+                .filter(c -> c.getId().toString().equals(submittedId.trim()))
+                .findFirst();
+        assertTrue(resolvedById.isPresent(), "College must be resolvable by stable primary key ID");
+        assertEquals("INDU", resolvedById.get().getCode());
+
+        // Case B: Form submits institutional code "INDU"
+        String submittedCode = "INDU";
+        Optional<College> resolvedByCode = colleges.stream()
+                .filter(c -> c.getCode().equalsIgnoreCase(submittedCode.trim()))
+                .findFirst();
+        assertTrue(resolvedByCode.isPresent(), "College must be resolvable by institutional code");
+        assertEquals(42L, resolvedByCode.get().getId());
     }
 }

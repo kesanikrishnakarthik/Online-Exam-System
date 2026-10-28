@@ -65,6 +65,8 @@ public class SecurityConfig {
                 .failureHandler((request, response, exception) -> {
                     if (exception instanceof org.springframework.security.authentication.DisabledException) {
                         response.sendRedirect("/login?disabled=true");
+                    } else if (exception instanceof org.springframework.security.authentication.LockedException) {
+                        response.sendRedirect("/login?suspended=true");
                     } else {
                         response.sendRedirect("/login?error=true");
                     }

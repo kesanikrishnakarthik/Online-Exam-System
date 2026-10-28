@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,6 +39,7 @@ public class OnboardingController {
         return "register-college";
     }
 
+    @Transactional
     @PostMapping("/register-college")
     public String registerCollege(
             @RequestParam String name,
@@ -52,10 +54,11 @@ public class OnboardingController {
             @RequestParam String confirmPassword,
             RedirectAttributes redirectAttributes) {
 
+        String trimmedName = (name != null) ? name.trim() : "";
         String trimmedCode = (code != null) ? code.trim().toUpperCase() : "";
         String trimmedAdminUser = (adminUsername != null) ? adminUsername.trim().toLowerCase() : "";
 
-        if (name.isBlank() || trimmedCode.isBlank() || contactEmail.isBlank() || trimmedAdminUser.isBlank() || adminPassword.isBlank()) {
+        if (trimmedName.isBlank() || trimmedCode.isBlank() || contactEmail.isBlank() || trimmedAdminUser.isBlank() || adminPassword.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "All required fields, including Administrator credentials, must be provided.");
             return "redirect:/register-college";
         }
@@ -65,22 +68,22 @@ public class OnboardingController {
             return "redirect:/register-college";
         }
 
-        if (collegeRepository.existsByCode(trimmedCode)) {
+        if (collegeRepository.existsByCodeIgnoreCase(trimmedCode)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Institutional code '" + trimmedCode + "' is already registered in the platform.");
             return "redirect:/register-college";
         }
 
-        if (userAccountRepository.existsByUsername(trimmedAdminUser)) {
+        if (userAccountRepository.existsByUsernameIgnoreCase(trimmedAdminUser)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Administrator username '" + trimmedAdminUser + "' is already taken. Please choose another username.");
             return "redirect:/register-college";
         }
 
-        // Save new college tenant with status PENDING (activated on platform approval)
-        College college = new College(name.trim(), trimmedCode, type, "PENDING",
+        // Save new college tenant with status APPROVED
+        College college = new College(trimmedName, trimmedCode, type, "APPROVED",
                 address, contactPerson, contactEmail, contactPhone);
         collegeRepository.save(college);
 
-        // Save linked College Administrator account with status PENDING
+        // Save linked College Administrator account with status ACTIVE
         UserAccount adminAccount = new UserAccount(
                 trimmedAdminUser,
                 passwordEncoder.encode(adminPassword),
@@ -89,14 +92,14 @@ public class OnboardingController {
                 trimmedCode + "-ADM-01",
                 "ROLE_ADMIN",
                 trimmedCode,
-                name.trim(),
+                trimmedName,
                 "Academic Administration"
         );
-        adminAccount.setStatus("PENDING");
+        adminAccount.setStatus("ACTIVE");
         userAccountRepository.save(adminAccount);
 
         redirectAttributes.addFlashAttribute("successMessage",
-                "Institution '" + name + "' (Code: " + trimmedCode + ") registered successfully! The application and Administrator account ('" + trimmedAdminUser + "') are pending Platform Super Administrator review.");
+                "Institution '" + trimmedName + "' (Code: " + trimmedCode + ") registered successfully! Administrator account ('" + trimmedAdminUser + "') is now active. Please sign in below.");
         return "redirect:/login";
     }
 
@@ -105,7 +108,7 @@ public class OnboardingController {
     // =========================================================================
     @GetMapping("/register-student")
     public String showStudentRegistrationForm(Model model) {
-        List<College> approvedColleges = collegeRepository.findByStatus("APPROVED");
+        List<College> approvedColleges = collegeRepository.findByStatusIn(List.of("APPROVED", "ACTIVE"));
         model.addAttribute("colleges", approvedColleges);
         return "register-student";
     }
@@ -125,10 +128,9 @@ public class OnboardingController {
             @RequestParam String confirmPassword,
             RedirectAttributes redirectAttributes) {
 
-        String trimmedCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "";
         String trimmedRoll = (rollNumber != null) ? rollNumber.trim() : "";
 
-        if (fullName.isBlank() || trimmedRoll.isBlank() || email.isBlank() || password.isBlank()) {
+        if (collegeCode == null || collegeCode.isBlank() || fullName.isBlank() || trimmedRoll.isBlank() || email.isBlank() || password.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please complete all required fields.");
             return "redirect:/register-student";
         }
@@ -138,20 +140,30 @@ public class OnboardingController {
             return "redirect:/register-student";
         }
 
-        College college = collegeRepository.findByCode(trimmedCode).orElse(null);
-        if (college == null || !"APPROVED".equalsIgnoreCase(college.getStatus())) {
+        College college = null;
+        String trimmedInput = collegeCode.trim();
+        if (trimmedInput.matches("\\d+")) {
+            college = collegeRepository.findById(Long.parseLong(trimmedInput)).orElse(null);
+        }
+        if (college == null) {
+            college = collegeRepository.findByCodeIgnoreCase(trimmedInput).orElse(null);
+        }
+
+        if (college == null || (!"APPROVED".equalsIgnoreCase(college.getStatus()) && !"ACTIVE".equalsIgnoreCase(college.getStatus()))) {
             redirectAttributes.addFlashAttribute("errorMessage", "The selected college is not currently approved for examination registration.");
             return "redirect:/register-student";
         }
 
-        if (userAccountRepository.existsByCollegeCodeAndInstitutionalId(trimmedCode, trimmedRoll)) {
+        String trimmedCode = college.getCode().trim().toUpperCase();
+
+        if (userAccountRepository.existsByCollegeCodeIgnoreCaseAndInstitutionalIdIgnoreCase(trimmedCode, trimmedRoll)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Candidate with Roll Number '" + trimmedRoll + "' is already enrolled under " + college.getName() + ".");
             return "redirect:/register-student";
         }
 
         // Standardized globally-unique username: e.g. "ait_21b91a0501"
         String username = trimmedCode.toLowerCase() + "_" + trimmedRoll.toLowerCase();
-        if (userAccountRepository.existsByUsername(username)) {
+        if (userAccountRepository.existsByUsernameIgnoreCase(username)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Username '" + username + "' already exists.");
             return "redirect:/register-student";
         }
@@ -177,7 +189,7 @@ public class OnboardingController {
     // =========================================================================
     @GetMapping("/register-faculty")
     public String showFacultyRegistrationForm(Model model) {
-        List<College> approvedColleges = collegeRepository.findByStatus("APPROVED");
+        List<College> approvedColleges = collegeRepository.findByStatusIn(List.of("APPROVED", "ACTIVE"));
         model.addAttribute("colleges", approvedColleges);
         return "register-faculty";
     }
@@ -194,10 +206,9 @@ public class OnboardingController {
             @RequestParam String confirmPassword,
             RedirectAttributes redirectAttributes) {
 
-        String trimmedCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "";
         String trimmedId = (facultyId != null) ? facultyId.trim() : "";
 
-        if (fullName.isBlank() || trimmedId.isBlank() || email.isBlank() || password.isBlank()) {
+        if (collegeCode == null || collegeCode.isBlank() || fullName.isBlank() || trimmedId.isBlank() || email.isBlank() || password.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "All required faculty fields must be filled.");
             return "redirect:/register-faculty";
         }
@@ -207,19 +218,29 @@ public class OnboardingController {
             return "redirect:/register-faculty";
         }
 
-        College college = collegeRepository.findByCode(trimmedCode).orElse(null);
-        if (college == null || !"APPROVED".equalsIgnoreCase(college.getStatus())) {
+        College college = null;
+        String trimmedInput = collegeCode.trim();
+        if (trimmedInput.matches("\\d+")) {
+            college = collegeRepository.findById(Long.parseLong(trimmedInput)).orElse(null);
+        }
+        if (college == null) {
+            college = collegeRepository.findByCodeIgnoreCase(trimmedInput).orElse(null);
+        }
+
+        if (college == null || (!"APPROVED".equalsIgnoreCase(college.getStatus()) && !"ACTIVE".equalsIgnoreCase(college.getStatus()))) {
             redirectAttributes.addFlashAttribute("errorMessage", "Selected institution is not approved or active.");
             return "redirect:/register-faculty";
         }
 
-        if (userAccountRepository.existsByCollegeCodeAndInstitutionalId(trimmedCode, trimmedId)) {
+        String trimmedCode = college.getCode().trim().toUpperCase();
+
+        if (userAccountRepository.existsByCollegeCodeIgnoreCaseAndInstitutionalIdIgnoreCase(trimmedCode, trimmedId)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Faculty ID '" + trimmedId + "' is already registered in " + college.getName() + ".");
             return "redirect:/register-faculty";
         }
 
         String username = trimmedCode.toLowerCase() + "_" + trimmedId.toLowerCase();
-        if (userAccountRepository.existsByUsername(username)) {
+        if (userAccountRepository.existsByUsernameIgnoreCase(username)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Faculty account already exists.");
             return "redirect:/register-faculty";
         }

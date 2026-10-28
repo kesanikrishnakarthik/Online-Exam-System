@@ -183,11 +183,15 @@
                 <label for="collegeCode">Enrolled Institution / College <span>*</span></label>
                 <select id="collegeCode" name="collegeCode" required>
                     <option value="" disabled selected>-- Select your approved college --</option>
+                    <option th:if="${#lists.isEmpty(colleges)}" disabled value="">No approved colleges available. Please contact your administrator.</option>
                     <option th:each="col : ${colleges}" 
                             th:value="${col.code}" 
                             th:text="${col.name + ' (' + col.code + ')'}">Apex Institute of Technology (AIT)</option>
                 </select>
-                <div class="help-text">Don't see your college? Your institution administrator must register first.</div>
+                <div th:if="${#lists.isEmpty(colleges)}" class="help-text" style="color: #dc2626; margin-top: 6px;">
+                    ⚠️ No registered colleges are currently active. <a href="/register-college" style="color: #2563eb; font-weight: 600;">Onboard your college first</a>.
+                </div>
+                <div th:if="${not #lists.isEmpty(colleges)}" class="help-text">Don't see your college? Your institution administrator must register first.</div>
             </div>
 
             <div class="form-group">
