@@ -5,7 +5,7 @@ pipeline {
         APP_NAME = 'online-exam'
         APP_VERSION = '1.0'
         CONTAINER_NAME = 'online-exam-container'
-        SERVER_PORT = '8081'
+        SERVER_PORT = '8083'
     }
 
     stages {
@@ -46,16 +46,16 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker container image: ${APP_NAME}:${APP_VERSION}..."
+                echo "Building Docker image: ${APP_NAME}:${APP_VERSION}..."
                 bat "docker build -t ${APP_NAME}:${APP_VERSION} ."
             }
         }
 
         stage('Deploy Application') {
             steps {
-                echo 'Deploying containerized application on port 8081...'
+                echo "Deploying containerized application on port ${SERVER_PORT}..."
                 bat """
-                    docker rm -f ${CONTAINER_NAME} 2>NUL || ver >NUL
+                    docker rm -f ${CONTAINER_NAME} 2>NUL
                     docker run -d --name ${CONTAINER_NAME} -p ${SERVER_PORT}:8081 ${APP_NAME}:${APP_VERSION}
                 """
             }
@@ -71,10 +71,11 @@ pipeline {
 
     post {
         success {
-            echo 'CI/CD Pipeline executed successfully! College Online Examination System is running at http://localhost:8081'
+            echo 'CI/CD Pipeline executed successfully! ExamSphere is running at http://localhost:8083'
         }
         failure {
             echo 'CI/CD Pipeline failed. Please check test results and build logs.'
         }
     }
 }
+
