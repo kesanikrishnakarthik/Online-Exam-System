@@ -1,6 +1,8 @@
+
 package com.onlineexam.online_exam;
 
 import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,22 +20,32 @@ public class College {
     private String name;
 
     @Column(nullable = false, unique = true)
-    private String code; // Unique uppercase identifier, e.g. "AIT", "NIE", "MIT"
+    private String code;
 
-    private String type; // Engineering / B.Tech, Degree College, Polytechnic, University
-    private String status = "APPROVED"; // APPROVED, ACTIVE, SUSPENDED
+    private String type;
+
+    private String status = "APPROVED";
+
     private String address;
+
     private String contactPerson;
+
     private String contactEmail;
+
     private String contactPhone;
+
+    @Column(length = 2000)
     private String departments = "Computer Science & Engineering (CSE), Computer Science (CS), CSE - Data Science (CSE-DS), Artificial Intelligence & Machine Learning (AIML), Artificial Intelligence & Data Science (AIDS), Information Technology (IT), Mechanical Engineering (MECH), Civil Engineering (CIVIL), Electronics & Communication Engineering (ECE), Electrical & Electronics Engineering (EEE)";
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public College() {
     }
 
-    public College(String name, String code, String type, String status, String address,
-                   String contactPerson, String contactEmail, String contactPhone) {
+    public College(String name, String code, String type, String status,
+            String address, String contactPerson,
+            String contactEmail, String contactPhone) {
+
         this.name = name;
         this.code = (code != null) ? code.trim().toUpperCase() : "";
         this.type = type;
@@ -133,4 +145,3 @@ public class College {
         this.createdAt = createdAt;
     }
 }
-
