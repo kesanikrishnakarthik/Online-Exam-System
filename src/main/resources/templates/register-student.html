@@ -182,14 +182,14 @@
             <div class="form-group" style="grid-column: span 2;">
                 <label for="collegeId">Enrolled Institution / College <span>*</span></label>
                 <select id="collegeId" name="collegeId" required>
-                    <option value="" disabled selected>-- Select your approved college --</option>
-                    <option th:if="${#lists.isEmpty(colleges)}" disabled value="">No approved colleges available. Please onboard a college first.</option>
+                    <option value="" disabled selected>-- Select your registered college --</option>
+                    <option th:if="${#lists.isEmpty(colleges)}" disabled value="">No registered colleges available. Please onboard your college first.</option>
                     <option th:each="col : ${colleges}" 
                             th:value="${col.id}" 
                             th:text="${col.name + ' (' + col.code + ')'}"></option>
                 </select>
                 <div th:if="${#lists.isEmpty(colleges)}" class="help-text" style="color: #dc2626; margin-top: 6px;">
-                    ⚠️ No registered colleges are currently active. <a href="/register-college" style="color: #2563eb; font-weight: 600;">Onboard your college first</a>.
+                    ⚠️ No registered colleges are currently available. <a href="/register-college" style="color: #2563eb; font-weight: 600;">Onboard your college first</a>.
                 </div>
                 <div th:if="${not #lists.isEmpty(colleges)}" class="help-text">Don't see your college? Your institution administrator must register first.</div>
             </div>

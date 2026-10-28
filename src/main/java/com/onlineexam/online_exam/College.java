@@ -21,7 +21,7 @@ public class College {
     private String code; // Unique uppercase identifier, e.g. "AIT", "NIE", "MIT"
 
     private String type; // Engineering / B.Tech, Degree College, Polytechnic, University
-    private String status = "PENDING"; // PENDING, APPROVED, REJECTED, SUSPENDED
+    private String status = "APPROVED"; // APPROVED, ACTIVE, SUSPENDED
     private String address;
     private String contactPerson;
     private String contactEmail;

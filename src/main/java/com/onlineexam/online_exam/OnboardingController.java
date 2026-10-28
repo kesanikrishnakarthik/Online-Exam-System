@@ -151,7 +151,7 @@ public class OnboardingController {
         }
 
         if (college == null || (!"APPROVED".equalsIgnoreCase(college.getStatus()) && !"ACTIVE".equalsIgnoreCase(college.getStatus()))) {
-            redirectAttributes.addFlashAttribute("errorMessage", "The selected college is not currently approved for examination registration.");
+            redirectAttributes.addFlashAttribute("errorMessage", "The selected college is not currently registered.");
             return "redirect:/register-student";
         }
 
@@ -230,7 +230,7 @@ public class OnboardingController {
         }
 
         if (college == null || (!"APPROVED".equalsIgnoreCase(college.getStatus()) && !"ACTIVE".equalsIgnoreCase(college.getStatus()))) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Selected institution is not approved or active.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Selected institution is not registered or active.");
             return "redirect:/register-faculty";
         }
 
@@ -252,11 +252,11 @@ public class OnboardingController {
                 trimmedId, "ROLE_FACULTY", trimmedCode, college.getName(), department
         );
         faculty.setDesignation(designation);
-        faculty.setStatus("PENDING"); // Requires College Administrator approval before creating exams
+        faculty.setStatus("ACTIVE"); // Account is immediately active upon registration
         userAccountRepository.save(faculty);
 
         redirectAttributes.addFlashAttribute("successMessage",
-                "Faculty application for '" + fullName + "' registered! Account is pending verification by the " + college.getName() + " Administrator.");
+                "Faculty registration for '" + fullName + "' successful! You can now log in using your Faculty ID '" + trimmedId + "'.");
         return "redirect:/login";
     }
 

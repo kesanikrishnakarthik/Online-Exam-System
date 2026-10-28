@@ -341,15 +341,15 @@
 </div>
 
 <div class="colleges-banner">
-    <h4>Approved Educational Institution Tenants</h4>
+    <h4>Registered Educational Institutions</h4>
     <div class="college-pills">
         <div th:each="c : ${approvedColleges}" class="college-chip">
             <span>🏛️</span>
-            <span><span th:text="${c.name}">Approved Institution</span> <code th:text="'(' + ${c.code} + ')'">(CODE)</code></span>
+            <span><span th:text="${c.name}">Registered Institution</span> <code th:text="'(' + ${c.code} + ')'">(CODE)</code></span>
         </div>
         <div th:if="${#lists.isEmpty(approvedColleges)}" class="college-chip" style="opacity: 0.7;">
             <span>ℹ️</span>
-            <span>No approved institutions currently active.</span>
+            <span>No registered institutions yet. Onboard your college first.</span>
         </div>
     </div>
 </div>

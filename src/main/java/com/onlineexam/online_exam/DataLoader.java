@@ -101,24 +101,6 @@ public class DataLoader {
             }
 
             // =========================================================================
-            // 1b. Seamless Migration: Activate Any Legacy Pending Colleges & Admins
-            // =========================================================================
-            List<College> pendingColleges = collegeRepository.findByStatusIgnoreCase("PENDING");
-            for (College pc : pendingColleges) {
-                pc.setStatus("APPROVED");
-                collegeRepository.save(pc);
-                log.info("Migrated registered college '{}' ({}) to APPROVED status.", pc.getName(), pc.getCode());
-                List<UserAccount> admins = userAccountRepository.findByCollegeCodeIgnoreCaseAndRoleIgnoreCase(pc.getCode(), "ROLE_ADMIN");
-                for (UserAccount a : admins) {
-                    if ("PENDING".equalsIgnoreCase(a.getStatus())) {
-                        a.setStatus("ACTIVE");
-                        userAccountRepository.save(a);
-                        log.info("Activated administrator account '{}' for college '{}'.", a.getUsername(), pc.getCode());
-                    }
-                }
-            }
-
-            // =========================================================================
             // 2. Initial Super-Administrator Provisioning (Without hardcoded public password)
             // =========================================================================
             List<UserAccount> existingAdmins = userAccountRepository.findByRole("ROLE_PLATFORM_ADMIN");
