@@ -121,7 +121,7 @@ public class OnboardingController {
             @RequestParam String fullName,
             @RequestParam String email,
             @RequestParam String department,
-            @RequestParam(required = false, defaultValue = "B.Tech CSE") String degreeBranch,
+            @RequestParam(required = false, defaultValue = "B.Tech - CSE") String degreeBranch,
             @RequestParam(required = false, defaultValue = "3rd Year") String academicYear,
             @RequestParam(required = false, defaultValue = "1st Semester") String semester,
             @RequestParam(required = false, defaultValue = "A") String section,

@@ -26,7 +26,7 @@ public class College {
     private String contactPerson;
     private String contactEmail;
     private String contactPhone;
-    private String departments = "Computer Science & Engineering, Information Technology, Electronics & Communication, Data Science & AI";
+    private String departments = "Computer Science & Engineering (CSE), Computer Science (CS), CSE - Data Science (CSE-DS), Artificial Intelligence & Machine Learning (AIML), Artificial Intelligence & Data Science (AIDS), Information Technology (IT), Mechanical Engineering (MECH), Civil Engineering (CIVIL), Electronics & Communication Engineering (ECE), Electrical & Electronics Engineering (EEE)";
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public College() {

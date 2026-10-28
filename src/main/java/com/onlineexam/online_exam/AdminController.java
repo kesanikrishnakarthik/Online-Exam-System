@@ -69,7 +69,10 @@ public class AdminController {
 
         List<String> depts = (college != null && college.getDepartments() != null)
                 ? Arrays.stream(college.getDepartments().split(",")).map(String::trim).toList()
-                : List.of("Computer Science & Engineering", "Information Technology", "Electronics & Communication");
+                : List.of("Computer Science & Engineering (CSE)", "Computer Science (CS)", "CSE - Data Science (CSE-DS)",
+                          "Artificial Intelligence & Machine Learning (AIML)", "Artificial Intelligence & Data Science (AIDS)",
+                          "Information Technology (IT)", "Mechanical Engineering (MECH)", "Civil Engineering (CIVIL)",
+                          "Electronics & Communication Engineering (ECE)", "Electrical & Electronics Engineering (EEE)");
 
         model.addAttribute("college", college);
         model.addAttribute("collegeName", collegeName);

@@ -41,7 +41,7 @@ public class CreateExamController {
             @RequestParam int durationMinutes,
             @RequestParam(defaultValue = "3") int maxAttempts,
             @RequestParam(defaultValue = "3") int maxViolations,
-            @RequestParam(required = false, defaultValue = "B.Tech CSE") String branchProgram,
+            @RequestParam(required = false, defaultValue = "B.Tech - CSE") String branchProgram,
             @RequestParam(required = false, defaultValue = "3rd Year") String academicYear,
             @RequestParam(required = false, defaultValue = "1st Semester") String semester,
             Authentication authentication,
