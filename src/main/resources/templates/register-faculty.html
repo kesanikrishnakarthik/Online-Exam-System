@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty Registration - Multi-College Examination Platform</title>
+    <title>Faculty Registration — ExamSphere</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
@@ -161,9 +161,9 @@
 <body>
 <div class="card-container">
     <div class="header-box">
-        <span class="badge-faculty">FACULTY REGISTRATION</span>
+        <span class="badge-faculty">EXAMSPHERE FACULTY ONBOARDING</span>
         <h1>Faculty & Examiner Onboarding</h1>
-        <p>Register as an instructor to create examinations, manage question banks, and evaluate results</p>
+        <p>One Platform. Multiple Colleges. Secure Examinations.</p>
     </div>
 
     <div th:if="${errorMessage}" class="alert-error">
@@ -174,13 +174,13 @@
     <form th:action="@{/register-faculty}" method="post">
         <div class="form-grid">
             <div class="form-group" style="grid-column: span 2;">
-                <label for="collegeCode">Institution / College <span>*</span></label>
-                <select id="collegeCode" name="collegeCode" required>
+                <label for="collegeId">Institution / College <span>*</span></label>
+                <select id="collegeId" name="collegeId" required>
                     <option value="" disabled selected>-- Select your approved college --</option>
                     <option th:if="${#lists.isEmpty(colleges)}" disabled value="">No approved colleges available. Please contact your administrator.</option>
                     <option th:each="col : ${colleges}" 
-                            th:value="${col.code}" 
-                            th:text="${col.name + ' (' + col.code + ')'}">Apex Institute of Technology (AIT)</option>
+                            th:value="${col.id}" 
+                            th:text="${col.name + ' (' + col.code + ')'}"></option>
                 </select>
                 <div th:if="${#lists.isEmpty(colleges)}" class="help-text" style="color: #dc2626; margin-top: 6px;">
                     ⚠️ No registered colleges are currently active. <a href="/register-college" style="color: #2563eb; font-weight: 600;">Onboard your college first</a>.

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Examination Performance - Faculty Panel</title>
+    <title>Student Examination Performance — ExamSphere Faculty Panel</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
@@ -167,7 +167,7 @@
 
 <body>
 <header>
-    <h2>Faculty Examination Portal</h2>
+    <h2>ExamSphere Faculty Portal</h2>
     <a href="/faculty/dashboard">← Back to Dashboard</a>
 </header>
 
@@ -177,10 +177,10 @@
             <div>
                 <h1>
                     <span>Department Examination Results</span>
-                    <span class="college-badge" th:text="${collegeCode}">AIT</span>
+                    <span class="college-badge" th:text="${collegeCode}">CODE</span>
                 </h1>
                 <p style="color: #64748b; font-size: 14px; margin-top: 4px;">
-                    <span th:text="${collegeName}">Apex Institute of Technology</span> • Multi-tenant candidate evaluation records
+                    <span th:text="${collegeName}">Institutional Faculty Portal</span> • Multi-tenant candidate evaluation records
                 </p>
             </div>
             <a href="/faculty/results/export" class="btn btn-export">📥 Export Results (CSV)</a>

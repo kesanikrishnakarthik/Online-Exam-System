@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Available Examinations - College Online Exam System</title>
+    <title>Available Examinations — ExamSphere</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
@@ -167,7 +167,7 @@
 
 <body>
 <header>
-    <h2>Online Exam</h2>
+    <h2>ExamSphere Online Exam</h2>
     <nav>
         <a href="/dashboard">Dashboard</a>
         <a href="/results">My Results</a>
@@ -182,7 +182,7 @@
 
     <section class="intro">
         <h1>Available Examinations</h1>
-        <p>Apex Institute of Technology — Strict 3-Attempt Policy Enforced</p>
+        <p><span th:text="${collegeName != null ? collegeName : 'ExamSphere Examination Portal'}">ExamSphere Examination Portal</span> — Strict 3-Attempt Policy Enforced</p>
     </section>
 
     <section class="exam-list" th:if="${not #lists.isEmpty(exams)}">

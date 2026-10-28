@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty Dashboard - College Online Exam System</title>
+    <title>Faculty Dashboard — ExamSphere</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
@@ -133,7 +133,7 @@
 
 <body>
 <header>
-    <h2>Faculty Examination Portal</h2>
+    <h2>ExamSphere Faculty Portal</h2>
     <nav style="display: flex; align-items: center; gap: 18px;">
         <a href="/faculty/dashboard">Dashboard</a>
         <a href="/faculty/exams">Exams</a>
@@ -146,7 +146,7 @@
 
 <div class="container">
     <div class="welcome-box">
-        <h1 style="font-size: 26px; margin-bottom: 6px;">Apex Institute of Technology - Faculty Panel</h1>
+        <h1 style="font-size: 26px; margin-bottom: 6px;"><span th:text="${collegeName != null ? collegeName : 'Institutional Faculty Portal'}">Faculty Examination Portal</span> — Faculty Panel</h1>
         <p>Design subject tests, configure questions, monitor integrity alerts, and grade student submissions.</p>
     </div>
 

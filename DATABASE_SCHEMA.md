@@ -1,5 +1,5 @@
 # Database Schema & Multi-Tenant Data Models
-**CollegeConnect - Multi-College Online Examination Platform**
+**ExamSphere — One Platform. Multiple Colleges. Secure Examinations.**
 
 ---
 

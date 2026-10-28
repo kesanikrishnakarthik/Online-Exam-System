@@ -115,7 +115,8 @@ public class OnboardingController {
 
     @PostMapping("/register-student")
     public String registerStudent(
-            @RequestParam String collegeCode,
+            @RequestParam(name = "collegeId", required = false) String collegeId,
+            @RequestParam(name = "collegeCode", required = false) String collegeCode,
             @RequestParam String rollNumber,
             @RequestParam String fullName,
             @RequestParam String email,
@@ -128,9 +129,10 @@ public class OnboardingController {
             @RequestParam String confirmPassword,
             RedirectAttributes redirectAttributes) {
 
+        String collegeInput = (collegeId != null && !collegeId.isBlank()) ? collegeId.trim() : (collegeCode != null ? collegeCode.trim() : "");
         String trimmedRoll = (rollNumber != null) ? rollNumber.trim() : "";
 
-        if (collegeCode == null || collegeCode.isBlank() || fullName.isBlank() || trimmedRoll.isBlank() || email.isBlank() || password.isBlank()) {
+        if (collegeInput.isBlank() || fullName.isBlank() || trimmedRoll.isBlank() || email.isBlank() || password.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please complete all required fields.");
             return "redirect:/register-student";
         }
@@ -141,12 +143,11 @@ public class OnboardingController {
         }
 
         College college = null;
-        String trimmedInput = collegeCode.trim();
-        if (trimmedInput.matches("\\d+")) {
-            college = collegeRepository.findById(Long.parseLong(trimmedInput)).orElse(null);
+        if (collegeInput.matches("\\d+")) {
+            college = collegeRepository.findById(Long.parseLong(collegeInput)).orElse(null);
         }
         if (college == null) {
-            college = collegeRepository.findByCodeIgnoreCase(trimmedInput).orElse(null);
+            college = collegeRepository.findByCodeIgnoreCase(collegeInput).orElse(null);
         }
 
         if (college == null || (!"APPROVED".equalsIgnoreCase(college.getStatus()) && !"ACTIVE".equalsIgnoreCase(college.getStatus()))) {
@@ -196,7 +197,8 @@ public class OnboardingController {
 
     @PostMapping("/register-faculty")
     public String registerFaculty(
-            @RequestParam String collegeCode,
+            @RequestParam(name = "collegeId", required = false) String collegeId,
+            @RequestParam(name = "collegeCode", required = false) String collegeCode,
             @RequestParam String facultyId,
             @RequestParam String fullName,
             @RequestParam String email,
@@ -206,9 +208,10 @@ public class OnboardingController {
             @RequestParam String confirmPassword,
             RedirectAttributes redirectAttributes) {
 
+        String collegeInput = (collegeId != null && !collegeId.isBlank()) ? collegeId.trim() : (collegeCode != null ? collegeCode.trim() : "");
         String trimmedId = (facultyId != null) ? facultyId.trim() : "";
 
-        if (collegeCode == null || collegeCode.isBlank() || fullName.isBlank() || trimmedId.isBlank() || email.isBlank() || password.isBlank()) {
+        if (collegeInput.isBlank() || fullName.isBlank() || trimmedId.isBlank() || email.isBlank() || password.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "All required faculty fields must be filled.");
             return "redirect:/register-faculty";
         }
@@ -219,12 +222,11 @@ public class OnboardingController {
         }
 
         College college = null;
-        String trimmedInput = collegeCode.trim();
-        if (trimmedInput.matches("\\d+")) {
-            college = collegeRepository.findById(Long.parseLong(trimmedInput)).orElse(null);
+        if (collegeInput.matches("\\d+")) {
+            college = collegeRepository.findById(Long.parseLong(collegeInput)).orElse(null);
         }
         if (college == null) {
-            college = collegeRepository.findByCodeIgnoreCase(trimmedInput).orElse(null);
+            college = collegeRepository.findByCodeIgnoreCase(collegeInput).orElse(null);
         }
 
         if (college == null || (!"APPROVED".equalsIgnoreCase(college.getStatus()) && !"ACTIVE".equalsIgnoreCase(college.getStatus()))) {

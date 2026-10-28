@@ -30,7 +30,7 @@ public class DataLoader {
     @Value("${SUPERADMIN_PASSWORD:${app.security.superadmin-password:}}")
     private String superadminPassword;
 
-    @Value("${SUPERADMIN_EMAIL:${app.security.superadmin-email:superadmin@collegeconnect.edu}}")
+    @Value("${SUPERADMIN_EMAIL:${app.security.superadmin-email:superadmin@examsphere.edu}}")
     private String superadminEmail;
 
     @Bean
@@ -144,7 +144,7 @@ public class DataLoader {
                         "PLAT-001",
                         "ROLE_PLATFORM_ADMIN",
                         "GLOBAL",
-                        "CollegeConnect Central Administration",
+                        "ExamSphere Central Administration",
                         "System Architecture & Governance"
                 );
                 superAdmin.setStatus("ACTIVE");

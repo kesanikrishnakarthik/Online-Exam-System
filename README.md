@@ -1,4 +1,5 @@
-# CollegeConnect - Multi-College Online Examination Platform with DevOps CI/CD
+# ExamSphere — Multi-College Online Examination Platform
+**Tagline:** One Platform. Multiple Colleges. Secure Examinations.  
 **Academic Level:** B.Tech Computer Science & Engineering Capstone Project  
 **Architecture:** Multi-Tenant Spring Boot 21 + Thymeleaf + Google Firebase + Docker + Jenkins  
 **Firebase Project ID:** `online-exams-98fa6`
@@ -7,9 +8,9 @@
 
 ## 1. Project Overview
 
-**CollegeConnect** is an enterprise-grade, multi-tenant online examination and assessment management platform built for universities, autonomous engineering colleges, degree institutions, and polytechnics. 
+**ExamSphere** is an enterprise-grade, multi-tenant online examination and assessment management platform built for universities, autonomous engineering colleges, degree institutions, and polytechnics. 
 
-Unlike single-college demonstrations, CollegeConnect enforces **strict tenant data isolation**: multiple institutions share the same robust backend infrastructure, while keeping their exams, question banks, student attempts, and academic evaluations strictly segregated.
+Unlike single-college demonstrations, ExamSphere enforces **strict tenant data isolation**: multiple institutions share the same robust backend infrastructure, while keeping their exams, question banks, student attempts, and academic evaluations strictly segregated.
 
 The platform integrates:
 1. **Multi-Tenant Institutional Governance:** Complete self-service college onboarding (`/register-college`) subject to Platform Super Administrator governance (`/platform/dashboard`).

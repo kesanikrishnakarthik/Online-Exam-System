@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CollegeConnect - Multi-College Online Examination Platform | DevOps CI/CD</title>
+    <title>ExamSphere — One Platform. Multiple Colleges. Secure Examinations.</title>
     <!-- Firebase SDK Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
@@ -316,7 +316,7 @@
 <body>
 <header>
     <div class="header-brand">
-        <h2>CollegeConnect</h2>
+        <h2>ExamSphere</h2>
         <span class="brand-badge">Multi-Tenant</span>
     </div>
     <nav>
@@ -328,8 +328,8 @@
 </header>
 
 <div class="hero">
-    <div class="tag-pill">Academic Year 2026 • DevOps Capstone Project</div>
-    <h1>Multi-College Online Examination Platform</h1>
+    <div class="tag-pill">One Platform. Multiple Colleges. Secure Examinations.</div>
+    <h1>ExamSphere Multi-College Examination Platform</h1>
     <p>
         An enterprise-grade, multi-tenant examination engine serving engineering colleges, autonomous universities, and degree institutions with strict data isolation, 3-attempt candidate policy, anti-cheating browser integrity, and automated CI/CD container delivery.
     </p>
@@ -345,7 +345,7 @@
     <div class="college-pills">
         <div th:each="c : ${approvedColleges}" class="college-chip">
             <span>🏛️</span>
-            <span><span th:text="${c.name}">Apex Institute of Technology</span> <code th:text="'(' + ${c.code} + ')'">(AIT)</code></span>
+            <span><span th:text="${c.name}">Approved Institution</span> <code th:text="'(' + ${c.code} + ')'">(CODE)</code></span>
         </div>
         <div th:if="${#lists.isEmpty(approvedColleges)}" class="college-chip" style="opacity: 0.7;">
             <span>ℹ️</span>
@@ -400,7 +400,7 @@
 </div>
 
 <div class="quick-onboarding-section" id="onboarding">
-    <h2 style="font-size: 26px; color: #0f172a; margin-bottom: 8px; font-weight: 800;">Get Started on CollegeConnect</h2>
+    <h2 style="font-size: 26px; color: #0f172a; margin-bottom: 8px; font-weight: 800;">Get Started on ExamSphere</h2>
     <p style="color: #64748b; font-size: 15px;">Choose your institutional role to register or sign in</p>
 
     <div class="onboarding-grid">
@@ -428,7 +428,7 @@
 </div>
 
 <footer>
-    <p>© 2026 CollegeConnect Multi-College Examination Platform</p>
+    <p>© 2026 ExamSphere — One Platform. Multiple Colleges. Secure Examinations.</p>
     <p style="margin-top: 6px; font-size: 12px; color: #64748b;">DevOps Capstone Project • Java 21 Spring Boot • Google Firebase • Docker • Jenkins</p>
 </footer>
 </body>
