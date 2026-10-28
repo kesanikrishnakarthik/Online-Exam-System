@@ -17,8 +17,8 @@ public class ExamAttempt {
     private String examTitle;
     private String subject;
     private String studentUsername;
-    private String collegeCode = "AIT";
-    private String college = "Apex Institute of Technology";
+    private String collegeCode;
+    private String college;
     private int attemptNumber;
     private LocalDateTime startTime;
     private LocalDateTime submissionTime;
@@ -39,7 +39,7 @@ public class ExamAttempt {
         this.subject = subject;
         this.studentUsername = studentUsername;
         this.college = college;
-        this.collegeCode = "AIT";
+        this.collegeCode = "";
         this.attemptNumber = attemptNumber;
         this.startTime = startTime;
         this.status = status;

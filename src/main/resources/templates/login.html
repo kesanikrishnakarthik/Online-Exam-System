@@ -112,7 +112,7 @@
             color: #334155;
         }
 
-        input {
+        input, select {
             width: 100%;
             padding: 12px 14px;
             border: 1.5px solid #cbd5e1;
@@ -122,7 +122,7 @@
             background: #f8fafc;
         }
 
-        input:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: #2563eb;
             background: #ffffff;
@@ -156,7 +156,7 @@
         .register-links {
             display: flex;
             justify-content: space-between;
-            margin-top: 18px;
+            margin-top: 20px;
             font-size: 12px;
             padding-bottom: 18px;
             border-bottom: 1px solid #f1f5f9;
@@ -170,53 +170,6 @@
 
         .register-links a:hover {
             text-decoration: underline;
-        }
-
-        .expo-box {
-            margin-top: 18px;
-            padding: 14px;
-            background: #f8fafc;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            font-size: 12px;
-        }
-
-        .expo-box h4 {
-            color: #1e3a8a;
-            margin-bottom: 8px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .cred-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .cred-item:last-child {
-            border-bottom: none;
-        }
-
-        .fill-btn {
-            background: #e0e7ff;
-            color: #3730a3;
-            border: none;
-            padding: 3px 8px;
-            border-radius: 5px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .fill-btn:hover {
-            background: #c7d2fe;
         }
 
         .home-link {
@@ -242,7 +195,7 @@
             <p>Enter your institutional credentials or college roll number</p>
         </div>
 
-        <!-- Success Flash Message (e.g. from registration) -->
+        <!-- Success Flash Message (e.g. from registration or password reset) -->
         <div th:if="${successMessage}" class="alert-success" th:text="${successMessage}">
             Registration successful!
         </div>
@@ -268,10 +221,19 @@
         </div>
 
         <form th:action="@{/login}" method="post">
+            <div class="form-group" th:if="${colleges != null and not #lists.isEmpty(colleges)}">
+                <label for="collegeCode">Institution / College (Optional)</label>
+                <select id="collegeCode" name="collegeCode">
+                    <option value="">-- All Institutions / Platform Admin --</option>
+                    <option th:each="c : ${colleges}" th:value="${c.code}" th:text="${c.name + ' (' + c.code + ')'}"></option>
+                </select>
+                <div class="hint-text">Select your college if your Roll Number is also used in another college</div>
+            </div>
+
             <div class="form-group">
-                <label for="username">Institutional ID / Roll No / Username</label>
-                <input type="text" id="username" name="username" placeholder="e.g. user, AIT:21B91A0501, superadmin" required autofocus>
-                <div class="hint-text">Students: use username (e.g. <code>user</code>) or roll format (e.g. <code>AIT:21B91A0501</code>)</div>
+                <label for="username">Roll Number / Faculty ID / Username</label>
+                <input type="text" id="username" name="username" placeholder="e.g. 21B91A0501, FAC-101, admin" required autofocus>
+                <div class="hint-text">Students: use your Roll Number; Faculty: your Faculty ID; Admins: your Admin Username</div>
             </div>
 
             <div class="form-group">
@@ -280,7 +242,7 @@
             </div>
 
             <button type="submit" class="submit-btn">Sign In to Examination Portal</button>
-            <div style="text-align: right; margin-top: 8px;">
+            <div style="text-align: right; margin-top: 10px;">
                 <a href="/forgot-password" style="font-size: 12px; color: #64748b; text-decoration: none;">Forgot Password?</a>
             </div>
         </form>
@@ -291,46 +253,19 @@
             <a href="/register-college">🏛️ Onboard College</a>
         </div>
 
-        <div class="expo-box">
-            <h4>
-                <span>Academic Expo Demo Credentials</span>
-                <span style="color: #64748b; font-size: 10px;">Click Fill to test</span>
-            </h4>
-            
-            <div class="cred-item">
-                <span>🌐 <strong>Super Admin:</strong> <code>superadmin</code></span>
-                <button type="button" class="fill-btn" onclick="fillCreds('superadmin', 'SuperAdmin@123')">Fill</button>
-            </div>
-            <div class="cred-item">
-                <span>🏛️ <strong>AIT Admin:</strong> <code>admin</code></span>
-                <button type="button" class="fill-btn" onclick="fillCreds('admin', 'Admin@123')">Fill</button>
-            </div>
-            <div class="cred-item">
-                <span>👨‍🏫 <strong>AIT Faculty:</strong> <code>faculty</code></span>
-                <button type="button" class="fill-btn" onclick="fillCreds('faculty', 'Faculty@123')">Fill</button>
-            </div>
-            <div class="cred-item">
-                <span>🎓 <strong>AIT Student:</strong> <code>user</code> (Roll: 21B91A0501)</span>
-                <button type="button" class="fill-btn" onclick="fillCreds('user', 'Exam@123')">Fill</button>
-            </div>
-            <div class="cred-item">
-                <span>👨‍🏫 <strong>NIE Faculty:</strong> <code>nie_faculty</code></span>
-                <button type="button" class="fill-btn" onclick="fillCreds('nie_faculty', 'Faculty@123')">Fill</button>
-            </div>
-            <div class="cred-item">
-                <span>🎓 <strong>NIE Student:</strong> <code>nie_student</code> (Roll: NIE-2026-001)</span>
-                <button type="button" class="fill-btn" onclick="fillCreds('nie_student', 'Exam@123')">Fill</button>
-            </div>
-        </div>
-
         <a href="/" class="home-link">← Return to Public Homepage</a>
     </div>
 
     <script>
-        function fillCreds(u, p) {
-            document.getElementById('username').value = u;
-            document.getElementById('password').value = p;
-        }
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var collegeSelect = document.getElementById('collegeCode');
+            var college = collegeSelect ? collegeSelect.value : '';
+            var userField = document.getElementById('username');
+            var val = userField.value.trim();
+            if (college && !val.includes(':') && !val.includes('/')) {
+                userField.value = college + ':' + val;
+            }
+        });
     </script>
 </body>
 </html>

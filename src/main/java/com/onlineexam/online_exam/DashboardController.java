@@ -27,13 +27,13 @@ public class DashboardController {
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
-        String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        String studentUsername = (authentication != null) ? authentication.getName() : "";
         UserAccount student = userAccountRepository.findByUsername(studentUsername).orElse(null);
 
-        String collegeCode = (student != null && student.getCollegeCode() != null) ? student.getCollegeCode() : "AIT";
-        String collegeName = (student != null && student.getCollegeName() != null) ? student.getCollegeName() : "Apex Institute of Technology";
-        String department = (student != null && student.getDepartment() != null) ? student.getDepartment() : "Computer Science & Engineering";
-        String rollNumber = (student != null && student.getRollNumberOrFacultyId() != null) ? student.getRollNumberOrFacultyId() : "21B91A0501";
+        String collegeCode = (student != null && student.getCollegeCode() != null) ? student.getCollegeCode() : "";
+        String collegeName = (student != null && student.getCollegeName() != null) ? student.getCollegeName() : "Institutional Student Portal";
+        String department = (student != null && student.getDepartment() != null) ? student.getDepartment() : "General";
+        String rollNumber = (student != null && student.getRollNumberOrFacultyId() != null) ? student.getRollNumberOrFacultyId() : studentUsername;
         String fullName = (student != null && student.getFullName() != null) ? student.getFullName() : studentUsername;
 
         // Multi-tenant exams list for student's college

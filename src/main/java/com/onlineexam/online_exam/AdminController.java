@@ -1,7 +1,10 @@
 package com.onlineexam.online_exam;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,12 +37,12 @@ public class AdminController {
     }
 
     private String getAdminCollegeCode(Authentication authentication) {
-        if (authentication == null) return "AIT";
+        if (authentication == null) return "";
         return userAccountRepository.findByUsername(authentication.getName())
                 .map(UserAccount::getCollegeCode)
                 .map(String::trim)
                 .map(String::toUpperCase)
-                .orElse("AIT");
+                .orElse("");
     }
 
     @GetMapping("/admin/dashboard")
@@ -47,7 +50,7 @@ public class AdminController {
         String collegeCode = getAdminCollegeCode(authentication);
         College college = collegeRepository.findByCode(collegeCode).orElse(null);
 
-        String collegeName = (college != null) ? college.getName() : "College of Technology";
+        String collegeName = (college != null) ? college.getName() : "Institutional Administration";
         List<Exam> exams = examRepository.findAll().stream()
                 .filter(e -> collegeCode.equalsIgnoreCase(e.getCollegeCode()))
                 .toList();
@@ -92,7 +95,7 @@ public class AdminController {
 
         String collegeCode = getAdminCollegeCode(authentication);
         College college = collegeRepository.findByCode(collegeCode).orElse(null);
-        String collegeName = (college != null) ? college.getName() : "College of Technology";
+        String collegeName = (college != null) ? college.getName() : "Institutional Administration";
 
         List<ExamResult> results = examResultRepository.findAll().stream()
                 .filter(r -> collegeCode.equalsIgnoreCase(r.getCollegeCode()))
@@ -121,6 +124,43 @@ public class AdminController {
         model.addAttribute("selectedStudent", student);
 
         return "admin-results";
+    }
+
+    @GetMapping("/admin/results/export")
+    public void exportResultsToCsv(Authentication authentication, HttpServletResponse response) throws IOException {
+        String collegeCode = getAdminCollegeCode(authentication);
+        College college = collegeRepository.findByCode(collegeCode).orElse(null);
+        String collegeName = (college != null) ? college.getName() : collegeCode;
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + collegeCode + "-institutional-results.csv\"");
+
+        PrintWriter writer = response.getWriter();
+        writer.println("Result ID,Exam Title,Subject,Roll Number,Student Username,College Code,College,Score,Total Marks,Percentage,Status,Attempt,Violations,Submission Reason,Date");
+
+        List<ExamResult> results = examResultRepository.findAll().stream()
+                .filter(r -> collegeCode.equalsIgnoreCase(r.getCollegeCode()))
+                .toList();
+
+        for (ExamResult r : results) {
+            writer.printf("%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,%d,%.2f%%,\"%s\",%d,%d,\"%s\",\"%s\"%n",
+                    r.getId(),
+                    r.getExamTitle() != null ? r.getExamTitle().replace("\"", "\"\"") : "",
+                    r.getSubject() != null ? r.getSubject().replace("\"", "\"\"") : "",
+                    r.getRollNumber() != null ? r.getRollNumber() : "",
+                    r.getStudentUsername(),
+                    r.getCollegeCode() != null ? r.getCollegeCode() : "",
+                    r.getCollege() != null ? r.getCollege().replace("\"", "\"\"") : collegeName,
+                    r.getScore(),
+                    r.getTotalMarks(),
+                    r.getPercentage(),
+                    r.getPassFailStatus(),
+                    r.getAttemptNumber(),
+                    r.getViolationCount(),
+                    r.getSubmissionReason(),
+                    r.getSubmissionTime() != null ? r.getSubmissionTime().toString() : ""
+            );
+        }
     }
 
     @PostMapping("/admin/faculty/{id}/approve")

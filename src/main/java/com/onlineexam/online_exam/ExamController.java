@@ -53,10 +53,10 @@ public class ExamController {
             Authentication authentication,
             Model model) {
 
-        String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        String studentUsername = (authentication != null) ? authentication.getName() : "";
         UserAccount account = getAuthenticatedAccount(authentication);
-        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
-        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Institutional Examination Portal";
 
         // Multi-tenant isolation: Only fetch exams for student's own college
         List<Exam> exams = examRepository.findByCollegeCode(collegeCode);
@@ -97,10 +97,10 @@ public class ExamController {
             Authentication authentication,
             Model model) {
 
-        String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        String studentUsername = (authentication != null) ? authentication.getName() : "";
         UserAccount account = getAuthenticatedAccount(authentication);
-        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
-        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Institutional Examination Portal";
 
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new IllegalArgumentException("Exam not found: " + examId));
@@ -148,6 +148,7 @@ public class ExamController {
 
         model.addAttribute("exam", exam);
         model.addAttribute("collegeName", collegeName);
+        model.addAttribute("collegeCode", collegeCode);
         model.addAttribute("questions", questions);
         model.addAttribute("totalMarks", totalMarks);
         model.addAttribute("passMarks", exam.getPassMarks());
@@ -168,11 +169,11 @@ public class ExamController {
             Authentication authentication,
             Model model) {
 
-        String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        String studentUsername = (authentication != null) ? authentication.getName() : "";
         UserAccount account = getAuthenticatedAccount(authentication);
-        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "AIT";
-        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Apex Institute of Technology";
-        String rollNumber = (account != null) ? account.getRollNumberOrFacultyId() : "21B91A0501";
+        String collegeCode = (account != null && account.getCollegeCode() != null) ? account.getCollegeCode() : "";
+        String collegeName = (account != null && account.getCollegeName() != null) ? account.getCollegeName() : "Institutional Examination Portal";
+        String rollNumber = (account != null && account.getRollNumberOrFacultyId() != null) ? account.getRollNumberOrFacultyId() : studentUsername;
 
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new IllegalArgumentException("Exam not found: " + examId));
@@ -255,6 +256,7 @@ public class ExamController {
      * 1. Single-Choice MCQ
      * 2. Multiple-Select Checkboxes (All-or-Nothing or Partial Credit)
      * 3. Fill-in-the-Blanks (Trimmed, Case-Insensitive, Multi-accepted answers)
+     * 4. Short-Answer (Keyword concepts evaluation)
      */
     public static int calculateScore(Question question, String textAnswer) {
         return calculateScore(question, textAnswer, null);
@@ -308,6 +310,20 @@ public class ExamController {
             }
             return 0;
 
+        } else if ("SHORT_ANSWER".equalsIgnoreCase(type)) {
+            if (textAnswer == null || textAnswer.isBlank()) return 0;
+            String studentText = textAnswer.trim();
+            if (question.getCorrectAnswer() == null || question.getCorrectAnswer().isBlank()) {
+                return studentText.length() >= 5 ? question.getMarks() : 0;
+            }
+            String[] acceptedKeywords = question.getCorrectAnswer().split(",");
+            for (String kw : acceptedKeywords) {
+                if (!kw.trim().isBlank() && studentText.toLowerCase().contains(kw.trim().toLowerCase())) {
+                    return question.getMarks();
+                }
+            }
+            return 0;
+
         } else {
             // SINGLE_CHOICE (MCQ)
             if (textAnswer != null && question.getCorrectAnswer() != null
@@ -333,7 +349,7 @@ public class ExamController {
             @RequestParam(defaultValue = "TAB_SWITCH") String violationType,
             Authentication authentication) {
 
-        String studentUsername = (authentication != null) ? authentication.getName() : "user";
+        String studentUsername = (authentication != null) ? authentication.getName() : "";
         Exam exam = examRepository.findById(examId).orElse(null);
 
         Map<String, Object> response = new HashMap<>();
@@ -361,4 +377,3 @@ public class ExamController {
         return ResponseEntity.ok(response);
     }
 }
-

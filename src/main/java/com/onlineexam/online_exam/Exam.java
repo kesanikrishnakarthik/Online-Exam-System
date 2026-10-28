@@ -25,16 +25,17 @@ public class Exam {
     private int passMarks = 8; // Default passing threshold
     private boolean negativeMarking = false;
 
-    private String collegeCode = "AIT";
-    private String college = "Apex Institute of Technology";
-    private String department = "Computer Science & Engineering";
-    private String branchProgram = "B.Tech CSE";
-    private String academicYear = "3rd Year";
-    private String semester = "1st Semester";
+    private String collegeCode;
+    private String college;
+    private String department;
+    private String branchProgram;
+    private String academicYear;
+    private String semester;
     private int maxAttempts = 3;
     private int maxViolations = 3;
     private boolean published = true;
     private String lifecycleStatus = "PUBLISHED"; // DRAFT, PUBLISHED, CLOSED
+    private String createdBy;
 
     public Exam() {
     }
@@ -215,5 +216,13 @@ public class Exam {
 
     public void setLifecycleStatus(String lifecycleStatus) {
         this.lifecycleStatus = lifecycleStatus;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 }

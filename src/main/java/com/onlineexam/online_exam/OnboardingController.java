@@ -1,6 +1,7 @@
 package com.onlineexam.online_exam;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -16,14 +17,17 @@ public class OnboardingController {
     private final CollegeRepository collegeRepository;
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetService passwordResetService;
 
     public OnboardingController(
             CollegeRepository collegeRepository,
             UserAccountRepository userAccountRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            PasswordResetService passwordResetService) {
         this.collegeRepository = collegeRepository;
         this.userAccountRepository = userAccountRepository;
         this.passwordEncoder = passwordEncoder;
+        this.passwordResetService = passwordResetService;
     }
 
     // =========================================================================
@@ -71,12 +75,12 @@ public class OnboardingController {
             return "redirect:/register-college";
         }
 
-        // Save new college tenant with status PENDING
+        // Save new college tenant with status PENDING (activated on platform approval)
         College college = new College(name.trim(), trimmedCode, type, "PENDING",
                 address, contactPerson, contactEmail, contactPhone);
         collegeRepository.save(college);
 
-        // Save linked College Administrator account with status PENDING (activated on approval)
+        // Save linked College Administrator account with status PENDING
         UserAccount adminAccount = new UserAccount(
                 trimmedAdminUser,
                 passwordEncoder.encode(adminPassword),
@@ -145,7 +149,7 @@ public class OnboardingController {
             return "redirect:/register-student";
         }
 
-        // Standardized username: e.g. "ait_21b91a0501"
+        // Standardized globally-unique username: e.g. "ait_21b91a0501"
         String username = trimmedCode.toLowerCase() + "_" + trimmedRoll.toLowerCase();
         if (userAccountRepository.existsByUsername(username)) {
             redirectAttributes.addFlashAttribute("errorMessage", "Username '" + username + "' already exists.");
@@ -164,7 +168,7 @@ public class OnboardingController {
         userAccountRepository.save(student);
 
         redirectAttributes.addFlashAttribute("successMessage",
-                "Enrollment successful! You can now log in using Roll Number '" + trimmedRoll + "' or handle '" + username + "'.");
+                "Enrollment successful! You can now log in using your Roll Number '" + trimmedRoll + "'.");
         return "redirect:/login";
     }
 
@@ -283,5 +287,88 @@ public class OnboardingController {
     @GetMapping("/forgot-password")
     public String showForgotPasswordPage() {
         return "forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(
+            @RequestParam String identifier,
+            @RequestParam String email,
+            RedirectAttributes redirectAttributes) {
+
+        String trimmedId = (identifier != null) ? identifier.trim() : "";
+        String trimmedEmail = (email != null) ? email.trim() : "";
+
+        // Standard message for security (prevents user account enumeration)
+        String genericMessage = "If an account matching the provided identifier and email exists, password reset instructions have been issued.";
+
+        if (!trimmedId.isBlank() && !trimmedEmail.isBlank()) {
+            Optional<UserAccount> userOpt = userAccountRepository.findByUsername(trimmedId);
+            if (userOpt.isEmpty()) {
+                List<UserAccount> byInstId = userAccountRepository.findAllByInstitutionalIdIgnoreCase(trimmedId);
+                if (byInstId.size() == 1) {
+                    userOpt = Optional.of(byInstId.get(0));
+                } else if (byInstId.size() > 1) {
+                    userOpt = byInstId.stream()
+                            .filter(u -> trimmedEmail.equalsIgnoreCase(u.getEmail()))
+                            .findFirst();
+                }
+            }
+
+            if (userOpt.isPresent()) {
+                UserAccount account = userOpt.get();
+                if (trimmedEmail.equalsIgnoreCase(account.getEmail())) {
+                    String rawToken = passwordResetService.createResetToken(account.getUsername(), account.getEmail());
+                    // Expose development reset testing link when SMTP is not configured
+                    redirectAttributes.addFlashAttribute("devResetToken", rawToken);
+                    redirectAttributes.addFlashAttribute("devResetLink", "/reset-password?token=" + rawToken);
+                }
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("infoMessage", genericMessage);
+        return "redirect:/forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String showResetPasswordPage(@RequestParam(required = false) String token, Model model) {
+        if (token == null || passwordResetService.validateToken(token).isEmpty()) {
+            model.addAttribute("errorMessage", "Password reset link is invalid, expired, or has already been used.");
+            return "reset-password";
+        }
+
+        model.addAttribute("token", token.trim());
+        return "reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String handleResetPassword(
+            @RequestParam String token,
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword,
+            RedirectAttributes redirectAttributes) {
+
+        if (token == null || passwordResetService.validateToken(token).isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Reset link is invalid or expired. Please submit a new request.");
+            return "redirect:/forgot-password";
+        }
+
+        if (newPassword.length() < 6) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Password must be at least 6 characters long.");
+            return "redirect:/reset-password?token=" + token;
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Passwords do not match.");
+            return "redirect:/reset-password?token=" + token;
+        }
+
+        boolean success = passwordResetService.resetPassword(token, newPassword);
+        if (!success) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to reset password. Token may have expired.");
+            return "redirect:/forgot-password";
+        }
+
+        redirectAttributes.addFlashAttribute("successMessage", "Password has been successfully updated! You can now sign in with your new password.");
+        return "redirect:/login";
     }
 }

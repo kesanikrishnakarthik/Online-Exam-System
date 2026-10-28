@@ -31,9 +31,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/", "/login", "/logout", "/register-college", "/register-student", "/register-faculty",
-                    "/forgot-password", "/css/**", "/js/**", "/images/**", "/h2-console/**", "/api/firebase-config"
+                    "/forgot-password", "/reset-password", "/css/**", "/js/**", "/images/**", "/h2-console/**",
+                    "/api/firebase-config", "/error", "/error/**"
                 ).permitAll()
-                .requestMatchers("/platform/**").hasRole("PLATFORM_ADMIN")
+                .requestMatchers("/platform/**", "/superadmin", "/superadmin/**").hasRole("PLATFORM_ADMIN")
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "COLLEGE_ADMIN", "PLATFORM_ADMIN")
                 .requestMatchers("/faculty/**").hasAnyRole("FACULTY", "PLATFORM_ADMIN")
                 .requestMatchers("/student/**", "/dashboard", "/exams", "/exam/**", "/results", "/profile", "/change-password")

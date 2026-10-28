@@ -392,6 +392,7 @@
                     <span th:if="${question.questionType == 'SINGLE_CHOICE'}" class="q-type-badge type-single">Single Choice (1 Option)</span>
                     <span th:if="${question.questionType == 'MULTIPLE_SELECT'}" class="q-type-badge type-multi">Multiple Select (Check all that apply)</span>
                     <span th:if="${question.questionType == 'FILL_BLANKS'}" class="q-type-badge type-fill">Fill in the Blank</span>
+                    <span th:if="${question.questionType == 'SHORT_ANSWER'}" class="q-type-badge type-fill" style="background: #fdf2f8; color: #db2777; border-color: #fbcfe8;">Short Answer</span>
 
                     <span style="float: right; font-size: 13px; color: #16a34a; font-weight: 700;">
                         [<span th:text="${question.marks}">4</span> Marks]
@@ -441,6 +442,11 @@
                 <!-- CASE 3: Fill in the Blanks (Text Input) -->
                 <div th:if="${question.questionType == 'FILL_BLANKS'}" class="fill-blank-box">
                     <input type="text" class="fill-blank-input" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" placeholder="Type your answer here..." oninput="onTextChanged(this)">
+                </div>
+
+                <!-- CASE 4: Short Answer (Textarea) -->
+                <div th:if="${question.questionType == 'SHORT_ANSWER'}" class="fill-blank-box">
+                    <textarea class="fill-blank-input" style="height: 90px; resize: vertical; padding: 10px;" th:name="${'question_' + question.id}" th:data-qnum="${stat.count}" placeholder="Type your answer / explanation here..." oninput="onTextChanged(this)"></textarea>
                 </div>
             </section>
         </form>

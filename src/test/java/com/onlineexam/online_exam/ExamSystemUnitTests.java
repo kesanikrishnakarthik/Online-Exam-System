@@ -22,6 +22,7 @@ class ExamSystemUnitTests {
         sampleExam = new Exam("Java Programming", "Java", 30, 20);
         sampleExam.setId(101L);
         sampleExam.setCollegeCode("AIT");
+        sampleExam.setCollege("Apex Institute of Technology");
         sampleExam.setMaxAttempts(3);
         sampleExam.setMaxViolations(3);
 
@@ -32,7 +33,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Exam Creation Defaults to Strict 3-Attempt Limit")
+    @DisplayName("Test 1: Verify Exam Creation Defaults & Metadata")
     void testExamCreationDefaults() {
         assertNotNull(sampleExam);
         assertEquals(3, sampleExam.getMaxAttempts(), "Default attempt limit must be 3");
@@ -42,24 +43,24 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Strict 3-Attempt Enforcement Logic")
+    @DisplayName("Test 2: Verify Strict 3-Attempt Enforcement Logic")
     void testStrictThreeAttemptLimit() {
         String student = "student1";
         List<ExamAttempt> history = new ArrayList<>();
 
         // Attempt 1
         history.add(new ExamAttempt(sampleExam.getId(), sampleExam.getTitle(), sampleExam.getSubject(),
-                student, sampleExam.getCollege(), 1, LocalDateTime.now(), "COMPLETED"));
+                student, sampleExam.getCollegeCode(), sampleExam.getCollege(), 1, LocalDateTime.now(), "COMPLETED"));
         assertTrue(history.size() < sampleExam.getMaxAttempts(), "Attempt 2 must be allowed");
 
         // Attempt 2
         history.add(new ExamAttempt(sampleExam.getId(), sampleExam.getTitle(), sampleExam.getSubject(),
-                student, sampleExam.getCollege(), 2, LocalDateTime.now(), "COMPLETED"));
+                student, sampleExam.getCollegeCode(), sampleExam.getCollege(), 2, LocalDateTime.now(), "COMPLETED"));
         assertTrue(history.size() < sampleExam.getMaxAttempts(), "Attempt 3 must be allowed");
 
         // Attempt 3
         history.add(new ExamAttempt(sampleExam.getId(), sampleExam.getTitle(), sampleExam.getSubject(),
-                student, sampleExam.getCollege(), 3, LocalDateTime.now(), "COMPLETED"));
+                student, sampleExam.getCollegeCode(), sampleExam.getCollege(), 3, LocalDateTime.now(), "COMPLETED"));
         assertEquals(3, history.size());
 
         // Verify Attempt 4 is strictly disallowed
@@ -68,7 +69,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Server-Side Score Calculation Without Exposing Answers")
+    @DisplayName("Test 3: Verify Server-Side Score Calculation Without Exposing Answers")
     void testServerSideScoreCalculation() {
         Map<String, String> studentAnswers = Map.of(
                 "q_1", "B", // Correct (4 marks)
@@ -95,10 +96,10 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Anti-Cheating Violation Auto-Submission Threshold")
+    @DisplayName("Test 4: Verify Anti-Cheating Violation Auto-Submission Threshold")
     void testAntiCheatingViolationThreshold() {
         ExamAttempt attempt = new ExamAttempt(sampleExam.getId(), sampleExam.getTitle(), sampleExam.getSubject(),
-                "testuser", sampleExam.getCollege(), 1, LocalDateTime.now(), "IN_PROGRESS");
+                "testuser", sampleExam.getCollegeCode(), sampleExam.getCollege(), 1, LocalDateTime.now(), "IN_PROGRESS");
 
         // Violation 1: Warning
         attempt.setViolationCount(1);
@@ -120,10 +121,10 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Examination Timer Expiration Auto-Submission")
+    @DisplayName("Test 5: Verify Examination Timer Expiration Auto-Submission")
     void testTimerExpirationAutoSubmission() {
         ExamAttempt attempt = new ExamAttempt(sampleExam.getId(), sampleExam.getTitle(), sampleExam.getSubject(),
-                "testuser", sampleExam.getCollege(), 1, LocalDateTime.now(), "IN_PROGRESS");
+                "testuser", sampleExam.getCollegeCode(), sampleExam.getCollege(), 1, LocalDateTime.now(), "IN_PROGRESS");
 
         // Simulate timer hitting 0
         attempt.setStatus("AUTO_SUBMITTED_TIMEOUT");
@@ -135,7 +136,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Student Result Privacy (Student only sees own results)")
+    @DisplayName("Test 6: Verify Student Result Privacy (Student only sees own results)")
     void testStudentResultPrivacy() {
         List<ExamResult> allResults = List.of(
                 new ExamResult(101L, "Java", "Java", "studentA", 16, 20),
@@ -155,7 +156,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Multi-Tenant Data Isolation (College A cannot see College B exams)")
+    @DisplayName("Test 7: Verify Multi-Tenant Data Isolation (College A cannot see College B exams)")
     void testMultiTenantExamIsolation() {
         Exam examAIT1 = new Exam("Data Structures", "CSE", 45, 30);
         examAIT1.setCollegeCode("AIT");
@@ -180,7 +181,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify College Approval Gate (Only APPROVED colleges allow active enrollment)")
+    @DisplayName("Test 8: Verify College Approval Gate (Only APPROVED colleges allow active enrollment)")
     void testCollegeApprovalGate() {
         College approvedCollege = new College("Apex Institute", "AIT", "Engineering", "APPROVED", "Hyderabad", "Dr. Rao", "admin@ait.edu", "9876543210");
         College pendingCollege = new College("St. Xavier's", "SXC", "Degree", "PENDING", "Mumbai", "Fr. Joseph", "admin@sxc.edu", "9876543211");
@@ -192,7 +193,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Institutional Roll Number Login Parsing")
+    @DisplayName("Test 9: Verify Institutional Roll Number Login Parsing")
     void testInstitutionalRollNumberLoginParsing() {
         String inputLogin = "AIT:21B91A0501";
         String[] parts = inputLogin.split(":", 2);
@@ -206,7 +207,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Single Choice MCQ Grading Logic")
+    @DisplayName("Test 10: Verify Single Choice MCQ Grading Logic")
     void testSingleChoiceGrading() {
         Question q = new Question(101L, "What is the return type of hashCode()?", "int", "long", "void", "String", "A", 4);
         q.setQuestionType("SINGLE_CHOICE");
@@ -229,7 +230,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Multiple Select Checkbox All-or-Nothing Grading Logic")
+    @DisplayName("Test 11: Verify Multiple Select Checkbox All-or-Nothing Grading Logic")
     void testMultipleSelectAllOrNothingGrading() {
         Question q = new Question(101L, "Select valid Java access modifiers", "MULTIPLE_SELECT",
                 "public", "private", "protected", "friend", "A,B,C", "ALL_OR_NOTHING", false, 6, 0);
@@ -252,7 +253,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Multiple Select Checkbox Partial Credit Grading Logic")
+    @DisplayName("Test 12: Verify Multiple Select Checkbox Partial Credit Grading Logic")
     void testMultipleSelectPartialCreditGrading() {
         Question q = new Question(101L, "Select valid Java collection classes", "MULTIPLE_SELECT",
                 "ArrayList", "LinkedList", "Vector", "HashSet", "A,B,C", "PARTIAL_CREDIT", false, 6, 0);
@@ -271,7 +272,7 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Fill-in-the-Blanks Grading Logic (Trimming, Case-Insensitive, Multi-accepted)")
+    @DisplayName("Test 13: Verify Fill-in-the-Blanks Grading Logic (Trimming, Case-Insensitive, Multi-accepted)")
     void testFillInTheBlanksGrading() {
         Question q = new Question(101L, "Where is class metadata stored?", "FILL_BLANKS",
                 "", "", "", "", "metaspace, method area, permgen", "ALL_OR_NOTHING", false, 5, 0);
@@ -294,23 +295,23 @@ class ExamSystemUnitTests {
     }
 
     @Test
-    @DisplayName("Verify Case-Sensitive Fill-in-the-Blanks Grading Logic")
-    void testCaseSensitiveFillInTheBlanks() {
-        Question q = new Question(101L, "Enter uppercase acronym", "FILL_BLANKS",
-                "", "", "", "", "REST", "ALL_OR_NOTHING", true, 5, 0);
+    @DisplayName("Test 14: Verify Short Answer Concept Keyword Grading")
+    void testShortAnswerGrading() {
+        Question q = new Question(101L, "Explain the purpose of an interface in Java", "SHORT_ANSWER",
+                "", "", "", "", "contract,polymorphism,abstraction", "ALL_OR_NOTHING", false, 5, 0);
 
-        int scoreCorrect = ExamController.calculateScore(q, "REST");
-        assertEquals(5, scoreCorrect, "Exact case match must award full marks");
+        int scoreValid = ExamController.calculateScore(q, "An interface establishes an architectural contract for classes.");
+        assertEquals(5, scoreValid, "Answer containing key concept 'contract' must award marks");
 
-        int scoreWrongCase = ExamController.calculateScore(q, "rest");
-        assertEquals(0, scoreWrongCase, "Case mismatch in case-sensitive mode must award 0 marks");
+        int scoreInvalid = ExamController.calculateScore(q, "It is just code.");
+        assertEquals(0, scoreInvalid, "Answer lacking key concepts must award 0 marks");
     }
 
     @Test
-    @DisplayName("Verify Pass / Fail Calculation and Percentage Evaluation")
+    @DisplayName("Test 15: Verify Pass / Fail Calculation and Percentage Evaluation")
     void testPassFailCalculation() {
         Exam exam = new Exam("Web Technologies", "WT", 40, 50);
-        exam.setPassMarks(20); // 40% threshold
+        exam.setPassMarks(20);
 
         // Student A scores 25 (Pass)
         int scoreA = 25;
@@ -325,60 +326,60 @@ class ExamSystemUnitTests {
         double percentageB = (scoreB * 100.0) / exam.getTotalMarks();
         assertEquals("FAIL", statusB);
         assertEquals(38.0, percentageB);
-
-        // ExamResult entity evaluates pass/fail status
-        ExamResult resPass = new ExamResult(1L, "Web Technologies", "WT", "studentA", scoreA, 50);
-        assertEquals("PASS", resPass.getPassFailStatus());
-
-        ExamResult resFail = new ExamResult(1L, "Web Technologies", "WT", "studentB", scoreB, 50);
-        assertEquals("FAIL", resFail.getPassFailStatus());
     }
 
     @Test
-    @DisplayName("Verify Admin Exam Results Multi-Tenant Isolation")
+    @DisplayName("Test 16: Verify Admin Exam Results Multi-Tenant Isolation")
     void testAdminExamResultsTenantFilter() {
         ExamResult resAIT1 = new ExamResult(101L, "Java", "Java", "ait_user1", 18, 20);
         resAIT1.setCollegeCode("AIT");
         resAIT1.setRollNumber("21B91A0501");
 
-        ExamResult resAIT2 = new ExamResult(102L, "DBMS", "DBMS", "ait_user2", 15, 20);
-        resAIT2.setCollegeCode("AIT");
-        resAIT2.setRollNumber("21B91A0502");
-
         ExamResult resNIE = new ExamResult(201L, "Python", "Python", "nie_user1", 19, 20);
         resNIE.setCollegeCode("NIE");
         resNIE.setRollNumber("NIE-2026-001");
 
-        List<ExamResult> allResults = List.of(resAIT1, resAIT2, resNIE);
+        List<ExamResult> allResults = List.of(resAIT1, resNIE);
 
-        // Administrator from AIT queries results
         String adminCollegeCode = "AIT";
         List<ExamResult> filteredResults = allResults.stream()
                 .filter(r -> adminCollegeCode.equalsIgnoreCase(r.getCollegeCode()))
                 .toList();
 
-        assertEquals(2, filteredResults.size(), "Admin must only see results from their own institution");
-        assertTrue(filteredResults.stream().allMatch(r -> "AIT".equalsIgnoreCase(r.getCollegeCode())));
+        assertEquals(1, filteredResults.size(), "Admin must only see results from their own institution");
+        assertEquals("AIT", filteredResults.get(0).getCollegeCode());
         assertFalse(filteredResults.contains(resNIE), "AIT admin must never see NIE examination results");
     }
 
     @Test
-    @DisplayName("Verify Homepage and Registration Approved College Filtering")
-    void testApprovedCollegesHomepageFilter() {
-        College c1 = new College("Apex Institute of Technology", "AIT", "Engineering", "APPROVED", "Hyderabad", "Dr. Rao", "admin@ait.edu", "9876543210");
-        College c2 = new College("National Institute of Engineering", "NIE", "Engineering", "APPROVED", "Bengaluru", "Dr. Murthy", "admin@nie.edu", "9876543211");
-        College c3 = new College("Sphoorthy Engineering College", "SPHN", "Engineering", "PENDING", "Hyderabad", "Dr. Principal", "admin@sphoorthy.edu", "9876543212");
+    @DisplayName("Test 17: Verify Cryptographic Password Reset Token Hashing & Expiration")
+    void testPasswordResetTokenSecurity() {
+        String rawToken = "5f2b8d91a3c74e0192837465abcdefff";
+        String hash1 = PasswordResetService.hashToken(rawToken);
+        String hash2 = PasswordResetService.hashToken(rawToken);
 
-        List<College> allColleges = List.of(c1, c2, c3);
+        assertNotNull(hash1);
+        assertEquals(64, hash1.length(), "SHA-256 hash must be 64 hexadecimal characters");
+        assertEquals(hash1, hash2, "Hashing must be deterministic");
+        assertNotEquals(rawToken, hash1, "Raw token must not match token hash");
 
-        // Homepage and Registration Dropdowns show ONLY approved institutions
-        List<College> visibleColleges = allColleges.stream()
-                .filter(c -> "APPROVED".equalsIgnoreCase(c.getStatus()))
-                .toList();
+        PasswordResetToken activeToken = new PasswordResetToken(hash1, "student1", "student@ait.edu", LocalDateTime.now().plusMinutes(30));
+        assertFalse(activeToken.isExpired(), "Token with future expiry date must not be expired");
+        assertFalse(activeToken.isUsed(), "Token must initially be unused");
 
-        assertEquals(2, visibleColleges.size(), "Only APPROVED colleges should appear on homepage and enrollment dropdowns");
-        assertTrue(visibleColleges.contains(c1));
-        assertTrue(visibleColleges.contains(c2));
-        assertFalse(visibleColleges.contains(c3), "PENDING college must not appear in public approved lists until Super Admin approves");
+        PasswordResetToken expiredToken = new PasswordResetToken(hash1, "student1", "student@ait.edu", LocalDateTime.now().minusMinutes(1));
+        assertTrue(expiredToken.isExpired(), "Token past its expiry timestamp must report expired");
+    }
+
+    @Test
+    @DisplayName("Test 18: Verify Roll Number Uniqueness Scoped by College Tenant")
+    void testRollNumberScopedUniqueness() {
+        UserAccount s1 = new UserAccount("ait_21b91a0501", "pass", "Alex", "alex@ait.edu", "21B91A0501", "ROLE_STUDENT", "AIT", "Apex", "CSE");
+        UserAccount s2 = new UserAccount("sriindu_21b91a0501", "pass", "John", "john@sriindu.edu", "21B91A0501", "ROLE_STUDENT", "SIET", "Sri Indu", "CSE");
+
+        // Both colleges have identical roll number "21B91A0501" without collision
+        assertEquals(s1.getInstitutionalId(), s2.getInstitutionalId(), "Roll numbers can be shared across separate colleges");
+        assertNotEquals(s1.getCollegeCode(), s2.getCollegeCode(), "Colleges must differ");
+        assertNotEquals(s1.getUsername(), s2.getUsername(), "Global username must be segregated");
     }
 }

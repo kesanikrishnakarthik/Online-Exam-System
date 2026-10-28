@@ -27,7 +27,9 @@ public class HomeController {
     }
 
     @GetMapping("/login")
-    public String login() {
+    public String login(Model model) {
+        List<College> approvedColleges = collegeRepository.findByStatus("APPROVED");
+        model.addAttribute("colleges", approvedColleges);
         return "login";
     }
 

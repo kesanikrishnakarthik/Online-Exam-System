@@ -18,8 +18,8 @@ public class ExamResult {
     private String subject;
     private String studentUsername;
     private String rollNumber;
-    private String collegeCode = "AIT";
-    private String college = "Apex Institute of Technology";
+    private String collegeCode;
+    private String college;
     private int score;
     private int totalMarks;
     private String passFailStatus = "PASS"; // PASS, FAIL
@@ -42,7 +42,7 @@ public class ExamResult {
         this.submissionTime = LocalDateTime.now();
         this.attemptNumber = 1;
         this.submissionReason = "NORMAL";
-        this.collegeCode = "AIT";
+        this.collegeCode = "";
         this.passFailStatus = (totalMarks > 0 && (score * 100.0 / totalMarks) >= 40.0) ? "PASS" : "FAIL";
     }
 
@@ -55,7 +55,7 @@ public class ExamResult {
         this.subject = subject;
         this.studentUsername = studentUsername;
         this.college = college;
-        this.collegeCode = "AIT";
+        this.collegeCode = "";
         this.score = score;
         this.totalMarks = totalMarks;
         this.attemptNumber = attemptNumber;
@@ -74,7 +74,7 @@ public class ExamResult {
         this.subject = subject;
         this.studentUsername = studentUsername;
         this.rollNumber = rollNumber;
-        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "AIT";
+        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "";
         this.college = college;
         this.score = score;
         this.totalMarks = totalMarks;
@@ -138,7 +138,7 @@ public class ExamResult {
     }
 
     public void setCollegeCode(String collegeCode) {
-        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "AIT";
+        this.collegeCode = (collegeCode != null) ? collegeCode.trim().toUpperCase() : "";
     }
 
     public String getCollege() {

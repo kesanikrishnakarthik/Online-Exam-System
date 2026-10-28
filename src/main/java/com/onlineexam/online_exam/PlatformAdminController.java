@@ -27,7 +27,7 @@ public class PlatformAdminController {
         this.examResultRepository = examResultRepository;
     }
 
-    @GetMapping("/platform/dashboard")
+    @GetMapping({"/platform/dashboard", "/superadmin", "/platform"})
     public String platformDashboard(Model model) {
         List<College> allColleges = collegeRepository.findAll();
         long approvedCount = allColleges.stream().filter(c -> "APPROVED".equalsIgnoreCase(c.getStatus())).count();

@@ -1,6 +1,7 @@
 package com.onlineexam.online_exam;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.authentication.DisabledException;
@@ -30,11 +31,28 @@ public class CustomUserDetailsService implements UserDetailsService {
         String trimmed = loginIdentifier.trim();
         Optional<UserAccount> userOpt = userAccountRepository.findByUsername(trimmed);
 
-        // Fallback: check if identifier matches collegeCode:rollNumber format (e.g. "AIT:21B91A0501")
-        if (userOpt.isEmpty() && trimmed.contains(":")) {
-            String[] parts = trimmed.split(":", 2);
+        // 1. Check if identifier contains college prefix e.g. "AIT:21B91A0501" or "AIT/21B91A0501"
+        if (userOpt.isEmpty() && (trimmed.contains(":") || trimmed.contains("/"))) {
+            String[] parts = trimmed.split("[:/]", 2);
             userOpt = userAccountRepository.findByCollegeCodeAndInstitutionalId(
                     parts[0].trim().toUpperCase(), parts[1].trim());
+        }
+
+        // 2. Check if identifier directly matches student Roll Number or Faculty ID
+        if (userOpt.isEmpty()) {
+            List<UserAccount> matchingById = userAccountRepository.findAllByInstitutionalIdIgnoreCase(trimmed);
+            if (matchingById.size() == 1) {
+                userOpt = Optional.of(matchingById.get(0));
+            } else if (matchingById.size() > 1) {
+                // Multiple colleges share the same roll number; prompt user to specify college code prefix
+                throw new UsernameNotFoundException(
+                        "Multiple accounts found for '" + trimmed + "'. Please log in as COLLEGE_CODE:" + trimmed + " (e.g. AIT:" + trimmed + ")");
+            }
+        }
+
+        // 3. Fallback: check if login identifier is registered institutional email
+        if (userOpt.isEmpty()) {
+            userOpt = userAccountRepository.findByEmailIgnoreCase(trimmed);
         }
 
         UserAccount account = userOpt.orElseThrow(() ->

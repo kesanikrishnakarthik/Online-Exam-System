@@ -214,6 +214,7 @@
                     <option value="SINGLE_CHOICE" selected>1. Single-Choice Multiple Choice (1 Correct Option)</option>
                     <option value="MULTIPLE_SELECT">2. Multiple-Select (Multiple Correct Checkboxes)</option>
                     <option value="FILL_BLANKS">3. Fill-in-the-Blanks (Direct Student Text Input)</option>
+                    <option value="SHORT_ANSWER">4. Short Answer / Concept (Keywords / Reference Answer)</option>
                 </select>
             </div>
 
@@ -380,7 +381,7 @@
             singleChoice.style.display = 'none';
             multipleSelect.style.display = 'block';
             fillBlanks.style.display = 'none';
-        } else if (type === 'FILL_BLANKS') {
+        } else if (type === 'FILL_BLANKS' || type === 'SHORT_ANSWER') {
             optionsContainer.style.display = 'none';
             singleChoice.style.display = 'none';
             multipleSelect.style.display = 'none';

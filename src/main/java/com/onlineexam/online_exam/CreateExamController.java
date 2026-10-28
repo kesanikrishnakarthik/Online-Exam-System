@@ -2,6 +2,7 @@ package com.onlineexam.online_exam;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +22,15 @@ public class CreateExamController {
     }
 
     @GetMapping("/faculty/create-exam")
-    public String showCreateExamPage() {
+    public String showCreateExamPage(Authentication authentication, RedirectAttributes redirectAttributes) {
+        if (authentication != null) {
+            UserAccount faculty = userAccountRepository.findByUsername(authentication.getName()).orElse(null);
+            if (faculty != null && !"ROLE_PLATFORM_ADMIN".equalsIgnoreCase(faculty.getRole()) && !"ACTIVE".equalsIgnoreCase(faculty.getStatus())) {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Your faculty account is pending verification by your college administration. You cannot create examinations until approved.");
+                return "redirect:/faculty/dashboard";
+            }
+        }
         return "create-exam";
     }
 
@@ -40,18 +49,28 @@ public class CreateExamController {
 
         if (title.isBlank() || subject.isBlank()
                 || durationMinutes < 1 || durationMinutes > 300) {
-            redirectAttributes.addFlashAttribute(
-                    "errorMessage", "Enter valid exam details.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Enter valid exam details.");
             return "redirect:/faculty/create-exam";
         }
 
-        String username = (authentication != null) ? authentication.getName() : "faculty";
+        String username = (authentication != null) ? authentication.getName() : "";
         UserAccount faculty = userAccountRepository.findByUsername(username).orElse(null);
-        String collegeCode = (faculty != null && faculty.getCollegeCode() != null) ? faculty.getCollegeCode() : "AIT";
-        String collegeName = (faculty != null && faculty.getCollegeName() != null) ? faculty.getCollegeName() : "Apex Institute of Technology";
-        String department = (faculty != null && faculty.getDepartment() != null) ? faculty.getDepartment() : "Computer Science & Engineering";
 
-        Exam exam = new Exam(title, subject, durationMinutes, 0);
+        if (faculty == null) {
+            return "redirect:/login";
+        }
+
+        if (!"ROLE_PLATFORM_ADMIN".equalsIgnoreCase(faculty.getRole()) && !"ACTIVE".equalsIgnoreCase(faculty.getStatus())) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Your faculty account is pending verification by your college administration. You cannot create examinations until approved.");
+            return "redirect:/faculty/dashboard";
+        }
+
+        String collegeCode = (faculty.getCollegeCode() != null) ? faculty.getCollegeCode() : "";
+        String collegeName = (faculty.getCollegeName() != null) ? faculty.getCollegeName() : "";
+        String department = (faculty.getDepartment() != null) ? faculty.getDepartment() : "General";
+
+        Exam exam = new Exam(title.trim(), subject.trim(), durationMinutes, 0);
         exam.setCollegeCode(collegeCode);
         exam.setCollege(collegeName);
         exam.setDepartment(department);
@@ -61,6 +80,7 @@ public class CreateExamController {
         exam.setMaxAttempts(maxAttempts > 0 ? maxAttempts : 3);
         exam.setMaxViolations(maxViolations > 0 ? maxViolations : 3);
         exam.setLifecycleStatus("PUBLISHED");
+        exam.setCreatedBy(faculty.getUsername());
         examRepository.save(exam);
 
         return "redirect:/faculty/exam/" + exam.getId() + "/add-question";
